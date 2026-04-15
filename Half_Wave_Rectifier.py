@@ -148,8 +148,8 @@ with tab2:
     st.write(f"RMS Output Voltage: {Vrms:.2f} V")
 
     # ✅ Ripple WITHOUT capacitor
-        r_no_filter = np.sqrt((Vrms / Vdc)**2 - 1)
-        st.write(f"Ripple Factor (Without Filter): {r_no_filter:.4f}")
+    r_no_filter = np.sqrt((Vrms / Vdc)**2 - 1)
+    st.write(f"Ripple Factor (Without Filter): {r_no_filter:.4f}")
 
     # ✅ Ripple WITH capacitor
         if use_filter:
