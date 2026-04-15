@@ -15,7 +15,7 @@ import tempfile
 import schemdraw
 import schemdraw.elements as elm
 
-def draw_circuit(R, Vm, diode_on, use_filter=False, C_uF=0):
+def draw_circuit(R, Vm, use_filter=False, C_uF=0):
     d = schemdraw.Drawing()
     d.config(unit=3)
 
