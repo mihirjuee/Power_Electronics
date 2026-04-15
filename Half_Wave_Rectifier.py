@@ -151,7 +151,7 @@ st.write(f"RMS Output Voltage: {Vrms:.2f} V")
 
 if use_filter:
     C = C_uF * 1e-6   # ✅ FIX HERE
-    r = 1 / (2 * np.sqrt(3) * f * R * C)
+    r = 1 / (2 * np.sqrt(3) * freq * R * C)
     st.write(f"Ripple Factor: {r:.4f}")
     
     if use_filter:
