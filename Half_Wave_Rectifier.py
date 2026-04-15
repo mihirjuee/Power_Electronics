@@ -143,18 +143,18 @@ with tab2:
    with tab2:
        st.subheader("📊 Calculated Results")
 
-    Vdc = Vm / np.pi
-    Vrms = Vm / 2
+        Vdc = Vm / np.pi
+        Vrms = Vm / 2
 
-    st.write(f"DC Output Voltage: {Vdc:.2f} V")
-    st.write(f"RMS Output Voltage: {Vrms:.2f} V")
+        st.write(f"DC Output Voltage: {Vdc:.2f} V")
+        st.write(f"RMS Output Voltage: {Vrms:.2f} V")
 
     # ✅ Ripple WITHOUT capacitor
-    r_no_filter = np.sqrt((Vrms / Vdc)**2 - 1)
-    st.write(f"Ripple Factor (Without Filter): {r_no_filter:.4f}")
+        r_no_filter = np.sqrt((Vrms / Vdc)**2 - 1)
+        st.write(f"Ripple Factor (Without Filter): {r_no_filter:.4f}")
 
     # ✅ Ripple WITH capacitor
-    if use_filter:
+        if use_filter:
         C = C_uF * 1e-6
         r_with_filter = 1 / (2 * np.sqrt(3) * freq * R * C)
         st.write(f"Ripple Factor (With Capacitor): {r_with_filter:.4f}")
