@@ -112,10 +112,6 @@ with tab1:
         mid_index = len(diode_on_array)//2
         st.image(draw_circuit(R, Vm, use_filter, C_uF))
 
-        if diode_on_array[mid_index]:
-            st.success("Diode ON")
-        else:
-            st.error("Diode OFF")
 
     # --- Waveform ---
     with col2:
