@@ -139,8 +139,6 @@ with tab2:
     st.latex(r"r = \sqrt{\left(\frac{V_{RMS}}{V_{DC}}\right)^2 - 1}")
     st.latex(r"r \approx \frac{1}{2\sqrt{3} f R C}")
 
-    # -------- RESULTS --------
-   with tab2:
        st.subheader("📊 Calculated Results")
 
         Vdc = Vm / np.pi
