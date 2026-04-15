@@ -152,7 +152,7 @@ with tab2:
     st.write(f"Ripple Factor (Without Filter): {r_no_filter:.4f}")
 
     # ✅ Ripple WITH capacitor
-        if use_filter:
+    if use_filter:
         C = C_uF * 1e-6
         r_with_filter = 1 / (2 * np.sqrt(3) * freq * R * C)
         st.write(f"Ripple Factor (With Capacitor): {r_with_filter:.4f}")
