@@ -132,15 +132,6 @@ with tab1:
 
 # ------------------ RESULTS TAB ------------------
 with tab2:
-    st.subheader("📘 Key Formulas")
-
-st.latex(r"V_{DC} = \frac{V_m}{\pi}")
-st.latex(r"V_{RMS} = \frac{V_m}{2}")
-st.latex(r"r = \sqrt{\left(\frac{V_{RMS}}{V_{DC}}\right)^2 - 1}")
-
-if use_filter:
-    st.latex(r"r \approx \frac{1}{2\sqrt{3} f R C}")
-    
 
 Vdc = Vm / np.pi
 Vrms = Vm / 2
