@@ -132,18 +132,33 @@ with tab1:
 
 # ------------------ RESULTS TAB ------------------
 with tab2:
-    st.subheader("📊 Calculated Results")
-Vdc = Vm / np.pi
-Vrms = Vm / 2
-st.write(f"DC Output Voltage: {Vdc:.2f} V")
-st.write(f"RMS Output Voltage: {Vrms:.2f} V")
+    st.subheader("📘 Key Formulas")
 
-if use_filter:
-    C = C_uF * 1e-6   # ✅ FIX HERE
-    r = 1 / (2 * np.sqrt(3) * freq * R * C)
-    st.write(f"Ripple Factor: {r:.4f}")
-    
+    st.latex(r"V_{DC} = \frac{V_m}{\pi}")
+    st.latex(r"V_{RMS} = \frac{V_m}{2}")
+    st.latex(r"r = \sqrt{\left(\frac{V_{RMS}}{V_{DC}}\right)^2 - 1}")
+    st.latex(r"r \approx \frac{1}{2\sqrt{3} f R C}")
+
+    # -------- RESULTS --------
+   with tab2:
+        st.subheader("📊 Calculated Results")
+
+    Vdc = Vm / np.pi
+    Vrms = Vm / 2
+
+    st.write(f"DC Output Voltage: {Vdc:.2f} V")
+    st.write(f"RMS Output Voltage: {Vrms:.2f} V")
+
+    # ✅ Ripple WITHOUT capacitor
+    r_no_filter = np.sqrt((Vrms / Vdc)**2 - 1)
+    st.write(f"Ripple Factor (Without Filter): {r_no_filter:.4f}")
+
+    # ✅ Ripple WITH capacitor
     if use_filter:
-        st.success("Filter reduces ripple ✔")
+        C = C_uF * 1e-6
+        r_with_filter = 1 / (2 * np.sqrt(3) * freq * R * C)
+        st.write(f"Ripple Factor (With Capacitor): {r_with_filter:.4f}")
+
+        st.success("Capacitor reduces ripple significantly ✔")
     else:
-        st.warning("No filter → high ripple ⚠")
+        st.info("Enable capacitor filter to see reduced ripple")
