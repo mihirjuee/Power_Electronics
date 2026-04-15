@@ -141,7 +141,7 @@ with tab2:
 
     # -------- RESULTS --------
    with tab2:
-        st.subheader("📊 Calculated Results")
+       st.subheader("📊 Calculated Results")
 
     Vdc = Vm / np.pi
     Vrms = Vm / 2
