@@ -114,7 +114,7 @@ with col1:
 
 
     # --- Waveform ---
-    with col2:
+with col2:
         st.markdown("### Waveform")
 
         fig, ax = plt.subplots()
