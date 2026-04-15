@@ -107,7 +107,7 @@ with tab1:
     col1, col2 = st.columns(2)
 
     # --- Circuit ---
-    with col1:
+with col1:
         st.markdown("### Circuit")
         mid_index = len(diode_on_array)//2
         st.image(draw_circuit(R, Vm, use_filter, C_uF))
