@@ -73,41 +73,46 @@ Vdc = np.mean(vout_final)
 Vr = np.max(vout_final) - np.min(vout_final)
 ripple_factor = Vr / Vdc if Vdc != 0 else 0
 
+
 # ------------------ TABS ------------------
-tab1, tab2, tab3 = st.tabs(["🔌 Circuit", "📈 Waveform", "📊 Results"])
+tab1, tab2 = st.tabs(["🔌 Simulation", "📊 Results"])
 
-# ------------------ CIRCUIT ------------------
+# ------------------ SIMULATION TAB ------------------
 with tab1:
-    st.subheader("Animated Diode State")
+    st.subheader("Circuit & Waveform")
 
-    # pick mid-point state for display
-    mid_index = len(diode_on_array)//2
-    st.image(draw_circuit(R, Vm, diode_on_array[mid_index]))
+    col1, col2 = st.columns(2)
 
-    if diode_on_array[mid_index]:
-        st.success("Diode is ON (Conducting)")
-    else:
-        st.error("Diode is OFF (Blocking)")
+    # --- Circuit ---
+    with col1:
+        st.markdown("### Circuit")
+        mid_index = len(diode_on_array)//2
+        st.image(draw_circuit(R, Vm, diode_on_array[mid_index]))
 
-# ------------------ WAVEFORM ------------------
+        if diode_on_array[mid_index]:
+            st.success("Diode ON")
+        else:
+            st.error("Diode OFF")
+
+    # --- Waveform ---
+    with col2:
+        st.markdown("### Waveform")
+
+        fig, ax = plt.subplots()
+
+        ax.plot(t, vin, linestyle='dashed', label="Input AC")
+        ax.plot(t, vout, label="Rectified")
+        ax.plot(t, vout_final, linewidth=2, label="Filtered")
+
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel("Voltage (V)")
+        ax.grid()
+        ax.legend()
+
+        st.pyplot(fig)
+
+# ------------------ RESULTS TAB ------------------
 with tab2:
-    st.subheader("Waveform with Ripple")
-
-    fig, ax = plt.subplots()
-
-    ax.plot(t, vin, linestyle='dashed', label="Input AC")
-    ax.plot(t, vout, label="Rectified")
-    ax.plot(t, vout_final, linewidth=2, label="Filtered Output")
-
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Voltage (V)")
-    ax.grid()
-    ax.legend()
-
-    st.pyplot(fig)
-
-# ------------------ RESULTS ------------------
-with tab3:
     st.subheader("Performance")
 
     col1, col2, col3 = st.columns(3)
