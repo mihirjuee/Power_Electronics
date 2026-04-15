@@ -134,7 +134,7 @@ with col2:
 with tab2:
     st.subheader("📘 Key Formulas")
 
-    st.latex(r"DC Output Voltage, V_{DC} = \frac{V_m}{\pi}")
+    st.latex(r"DC \hspace{1cm} Output Voltage, V_{DC} = \frac{V_m}{\pi}")
     st.latex(r"RMS Value of Output Voltage,V_{RMS} = \frac{V_m}{2}")
     st.latex(r"r = \sqrt{\left(\frac{V_{RMS}}{V_{DC}}\right)^2 - 1}")
     st.latex(r"r \approx \frac{1}{2\sqrt{3} f R C}")
@@ -145,7 +145,7 @@ with tab2:
     Vrms = Vm / 2
 
     st.write(f"DC Output Voltage: {Vdc:.2f} V")
-    st.write(f"RMS Output Voltage: {Vrms:.2f} V")
+    st.write(f"Output RMS  Voltage: {Vrms:.2f} V")
 
     # ✅ Ripple WITHOUT capacitor
     r_no_filter = np.sqrt((Vrms / Vdc)**2 - 1)
