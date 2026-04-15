@@ -30,7 +30,7 @@ def draw_circuit(R, Vm, diode_on, use_filter=False, C_uF=0):
     # Node after diode
     node = d.add(elm.Dot())
 
-    # --- Branch 1: Resistor ---
+    # ------------------ RESISTOR BRANCH ------------------
     d.push()
     d.add(elm.Line().down())
     d.add(elm.Resistor().label(f'R\n{R}Ω'))
@@ -38,12 +38,13 @@ def draw_circuit(R, Vm, diode_on, use_filter=False, C_uF=0):
     d.add(elm.Line().up())
     d.pop()
 
-    # --- Branch 2: Capacitor (ONLY if enabled) ---
+    # ------------------ CAPACITOR BRANCH (SHIFTED RIGHT) ------------------
     if use_filter:
         d.push()
+        d.add(elm.Line().right(1))  # 👉 shift right
         d.add(elm.Line().down())
         d.add(elm.Capacitor().label(f'C\n{C_uF}µF'))
-        d.add(elm.Line().left().to(V1.start))
+        d.add(elm.Line().left(1).to(V1.start))  # 👉 return to source
         d.add(elm.Line().up())
         d.pop()
 
