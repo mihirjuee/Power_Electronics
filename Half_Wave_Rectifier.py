@@ -11,21 +11,43 @@ st.set_page_config(page_title="Half Wave Rectifier Pro", layout="wide")
 st.title("⚡ Half Wave Rectifier with Animation & Ripple")
 
 # ------------------ CIRCUIT ------------------
-def draw_circuit(R, Vm, diode_on):
+import tempfile
+import schemdraw
+import schemdraw.elements as elm
+
+def draw_circuit(R, Vm, diode_on, use_filter=False, C_uF=0):
     d = schemdraw.Drawing()
     d.config(unit=3)
 
     color = "green" if diode_on else "red"
 
+    # Source
     V1 = d.add(elm.SourceSin().label(f'{Vm}V'))
 
-    d.add(elm.Diode().right().color(color).label("ON" if diode_on else "OFF"))
+    # Diode
+    d.add(elm.Diode().right().color(color))
 
-    d.add(elm.Resistor().down().label(f'R\n{R}Ω'))
+    # Node after diode
+    node = d.add(elm.Dot())
 
+    # --- Branch 1: Resistor ---
+    d.push()
+    d.add(elm.Line().down())
+    d.add(elm.Resistor().label(f'R\n{R}Ω'))
     d.add(elm.Line().left().to(V1.start))
     d.add(elm.Line().up())
+    d.pop()
 
+    # --- Branch 2: Capacitor (ONLY if enabled) ---
+    if use_filter:
+        d.push()
+        d.add(elm.Line().down())
+        d.add(elm.Capacitor().label(f'C\n{C_uF}µF'))
+        d.add(elm.Line().left().to(V1.start))
+        d.add(elm.Line().up())
+        d.pop()
+
+    # Save image
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
     d.save(tmp.name)
 
