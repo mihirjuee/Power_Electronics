@@ -28,34 +28,25 @@ def draw_circuit(R, Vm, diode_on, use_filter=False, C_uF=0):
     d.add(elm.Diode().right().color(color))
 
     # --- Top node ---
-    top_node = d.add(elm.Dot())
+    d.add(elm.Dot())
 
-    # ================= RESISTOR BRANCH =================
+    # ----------- MAIN PATH (Resistor branch) -----------
     d.push()
     d.add(elm.Line().down())
     d.add(elm.Resistor().label(f'R\n{R}Ω'))
-    bottom_r = d.add(elm.Dot())  # bottom node
+    d.add(elm.Line().left().length(3))
+    d.add(elm.Line().up().to(V1.start))
     d.pop()
 
-    # ================= CAPACITOR BRANCH =================
+    # ----------- CAPACITOR BRANCH (SHIFTED RIGHT) -----------
     if use_filter:
         d.push()
         d.add(elm.Line().right(1.5))   # shift right
         d.add(elm.Line().down())
         d.add(elm.Capacitor().label(f'C\n{C_uF}µF'))
-        bottom_c = d.add(elm.Dot())
+        d.add(elm.Line().left().length(4.5))  # connect to return path
+        d.add(elm.Line().up())
         d.pop()
-
-    # ================= COMMON RETURN LINE =================
-    # Move to resistor bottom
-    d.add(elm.Line().at(bottom_r).left().length(2.5))
-
-    # If capacitor exists, connect its bottom
-    if use_filter:
-        d.add(elm.Line().at(bottom_c).left(1.5).to(bottom_r))
-
-    # Close loop back to source
-    d.add(elm.Line().to(V1.start))
 
     # Save image
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
