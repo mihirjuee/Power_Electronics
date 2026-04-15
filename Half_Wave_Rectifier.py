@@ -6,9 +6,12 @@ import schemdraw.elements as elm
 import tempfile
 
 # --- Page Config ---
-st.set_page_config(page_title="Half Wave Rectifier Pro", layout="wide")
+st.set_page_config(
+    page_title="Half Wave Rectifier,
+    page_icon="logo.png"
+)
 
-st.title("⚡ Half Wave Rectifier with Animation & Ripple")
+st.title("⚡ Half Wave Rectifier ")
 
 # ------------------ CIRCUIT ------------------
 import tempfile
@@ -56,6 +59,9 @@ def draw_circuit(R, Vm, use_filter=False, C_uF=0):
 
 # ------------------ SIDEBAR ------------------
 with st.sidebar:
+    st.image("logo.png", use_container_width=True)
+    st.markdown("## ⚡ Rectifier Lab")
+    st.markdown("---")
     st.header("Controls")
 
     Vm = st.slider("Peak Voltage (Vm)", 1, 325, 100)
@@ -136,7 +142,7 @@ with tab2:
 
     st.latex(r"DC \hspace{0.2cm} Output \hspace{0.2cm} Voltage,\hspace{0.2cm} V_{DC} = \frac{V_m}{\pi}")
     st.latex(r"RMS \hspace{0.2cm} Output \hspace{0.2cm} Voltage,\hspace{0.2cm} V_{RMS} = \frac{V_m}{2}")
-    st.latex(r" Ripple \hspace{0.2cm} factor, \hspace{0.2cm}(without \hspace{0.2cm} capcitor) r = \sqrt{\left(\frac{V_{RMS}}{V_{DC}}\right)^2 - 1}")
+    st.latex(r" Ripple \hspace{0.2cm} factor \hspace{0.2cm}(without \hspace{0.2cm} capcitor), r = \sqrt{\left(\frac{V_{RMS}}{V_{DC}}\right)^2 - 1}")
     st.latex(r"Ripple \hspace{0.2cm} factor \hspace{0.2cm}(with \hspace{0.2cm} capcitor), r \approx \frac{1}{2\sqrt{3} f R C}")
 
     st.subheader("📊 Calculated Results")
