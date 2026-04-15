@@ -19,7 +19,7 @@ def draw_circuit(R, Vm, diode_on, use_filter=False, C_uF=0):
     d = schemdraw.Drawing()
     d.config(unit=3)
 
-    color = "green" if diode_on else "red"
+    #color = "green" if diode_on else "red"
 
     # --- Source ---
     V1 = d.add(elm.SourceSin().label(f'{Vm}V'))
