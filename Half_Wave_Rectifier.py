@@ -141,12 +141,17 @@ st.latex(r"r = \sqrt{\left(\frac{V_{RMS}}{V_{DC}}\right)^2 - 1}")
 if use_filter:
     st.latex(r"r \approx \frac{1}{2\sqrt{3} f R C}")
     
-    st.subheader("Performance")
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("DC Voltage", f"{Vdc:.2f} V")
-    col2.metric("Ripple Voltage", f"{Vr:.2f} V")
-    col3.metric("Ripple Factor", f"{ripple_factor:.3f}")
+Vdc = Vm / np.pi
+Vrms = Vm / 2
+
+st.subheader("📊 Calculated Results")
+st.write(f"DC Output Voltage: {Vdc:.2f} V")
+st.write(f"RMS Output Voltage: {Vrms:.2f} V")
+
+if use_filter:
+    r = 1 / (2 * np.sqrt(3) * f * R * (C_uF * 1e-6))
+    st.write(f"Ripple Factor: {r:.4f}")
 
     if use_filter:
         st.success("Filter reduces ripple ✔")
