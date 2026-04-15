@@ -41,7 +41,7 @@ def draw_circuit(R, Vm, use_filter=False, C_uF=0):
     # ----------- CAPACITOR BRANCH (SHIFTED RIGHT) -----------
     if use_filter:
         d.push()
-        d.add(elm.Line().right(1.5))   # shift right
+        d.add(elm.Line().right(2.5))   # shift right
         d.add(elm.Line().down())
         d.add(elm.Capacitor().label(f'C\n{C_uF}µF'))
         d.add(elm.Line().left().length(4.5))  # connect to return path
