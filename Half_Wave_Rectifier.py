@@ -112,7 +112,6 @@ with tab1:
         mid_index = len(diode_on_array)//2
         st.image(draw_circuit(
     R, Vm,
-    diode_on_array[mid_index],
     use_filter,
     C_uF
 ))
