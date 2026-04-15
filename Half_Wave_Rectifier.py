@@ -25,7 +25,7 @@ def draw_circuit(R, Vm, use_filter=False, C_uF=0):
     V1 = d.add(elm.SourceSin().label(f'{Vm}V'))
 
     # --- Diode ---
-    d.add(elm.Diode().right().color(color))
+    d.add(elm.Diode().right())
 
     # --- Top node ---
     d.add(elm.Dot())
