@@ -150,7 +150,8 @@ st.write(f"DC Output Voltage: {Vdc:.2f} V")
 st.write(f"RMS Output Voltage: {Vrms:.2f} V")
 
 if use_filter:
-    r = 1 / (2 * np.sqrt(3) * f * R * (C_uF * 1e-6))
+    C = C_uF * 1e-6  # convert µF → F
+    r = 1 / (2 * np.sqrt(3) * f * R * C)
     st.write(f"Ripple Factor: {r:.4f}")
 
     if use_filter:
