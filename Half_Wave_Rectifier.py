@@ -134,10 +134,10 @@ with col2:
 with tab2:
     st.subheader("📘 Key Formulas")
 
-    st.latex(r"DC \hspace{1cm} Output Voltage, V_{DC} = \frac{V_m}{\pi}")
-    st.latex(r"RMS Value of Output Voltage,V_{RMS} = \frac{V_m}{2}")
-    st.latex(r"r = \sqrt{\left(\frac{V_{RMS}}{V_{DC}}\right)^2 - 1}")
-    st.latex(r"r \approx \frac{1}{2\sqrt{3} f R C}")
+    st.latex(r"DC \hspace{0.2cm} Output \hspace{0.2cm} Voltage,\hspace{0.2cm} V_{DC} = \frac{V_m}{\pi}")
+    st.latex(r"RMS \hspace{0.2cm} Output \hspace{0.2cm} Voltage,\hspace{0.2cm} V_{RMS} = \frac{V_m}{2}")
+    st.latex(r" Ripple \hspace{0.2cm} factor, \hspace{0.2cm} r = \sqrt{\left(\frac{V_{RMS}}{V_{DC}}\right)^2 - 1}")
+    st.latex(r"Ripple \hspace{0.2cm} factor, \hspace{0.2cm}(with \hspace{0.2cm} capcitor) r \approx \frac{1}{2\sqrt{3} f R C}")
 
     st.subheader("📊 Calculated Results")
 
