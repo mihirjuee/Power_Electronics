@@ -7,8 +7,9 @@ import tempfile
 
 # --- Page Config ---
 st.set_page_config(
-    page_title="Half Wave Rectifier,
-    page_icon="logo.png"
+    page_title="Half Wave Rectifier",
+    page_icon="logo.png",
+    layout="wide"
 )
 
 st.title("⚡ Half Wave Rectifier ")
