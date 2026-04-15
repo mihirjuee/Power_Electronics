@@ -61,7 +61,7 @@ def draw_circuit(R, Vm, use_filter=False, C_uF=0):
 # ------------------ SIDEBAR ------------------
 with st.sidebar:
     st.image("logo.png", use_container_width=True)
-    st.markdown("## ⚡ Rectifier Lab")
+    
     st.markdown("---")
     st.header("Controls")
 
