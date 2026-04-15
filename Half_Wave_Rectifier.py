@@ -109,7 +109,12 @@ with tab1:
     with col1:
         st.markdown("### Circuit")
         mid_index = len(diode_on_array)//2
-        st.image(draw_circuit(R, Vm, diode_on_array[mid_index]))
+        st.image(draw_circuit(
+    R, Vm,
+    diode_on_array[mid_index],
+    use_filter,
+    C_uF
+))
 
         if diode_on_array[mid_index]:
             st.success("Diode ON")
