@@ -133,10 +133,9 @@ with tab1:
 # ------------------ RESULTS TAB ------------------
 with tab2:
 
+st.subheader("📊 Calculated Results")
 Vdc = Vm / np.pi
 Vrms = Vm / 2
-
-st.subheader("📊 Calculated Results")
 st.write(f"DC Output Voltage: {Vdc:.2f} V")
 st.write(f"RMS Output Voltage: {Vrms:.2f} V")
 
