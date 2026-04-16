@@ -30,11 +30,14 @@ with st.sidebar:
 t = np.linspace(0, 0.1, 3000)
 dt = t[1] - t[0]
 
+# Phase A and Phase B are 180 degrees apart
 Va = Vm * np.sin(2 * np.pi * f * t)
 Vb = -Va 
 
+# Full wave rectification (Single diode drop)
 Vrect = np.maximum(np.maximum(Va, Vb) - Vd, 0)
 
+# Filter Logic (Capacitor Discharge calculation)
 Vout = np.zeros_like(t)
 if C > 0:
     for i in range(1, len(t)):
@@ -43,12 +46,13 @@ if C > 0:
 else:
     Vout = Vrect
 
+# Quantitative Analysis
 Vdc = np.mean(Vout)
 Idc = Vdc / R
 piv = 2 * Vm
 
 # =========================
-# 🔌 CIRCUIT DIAGRAM (FIRST)
+# 🔌 CIRCUIT DIAGRAM
 # =========================
 st.subheader("🔌 Circuit Schematic")
 
@@ -58,7 +62,7 @@ def draw_centre_tap():
     # Transformer Primary
     S = d.add(elm.SourceSin().label('Primary'))
     
-    # Centre Tapped Secondary
+    # Centre Tapped Secondary logic
     d.add(elm.Line().right().at(S.end).length(1))
     d.add(elm.Inductor2().down().label('L1'))
     tap = d.add(elm.Dot())
@@ -78,21 +82,18 @@ def draw_centre_tap():
     d.add(elm.Line().right().length(1.5))
     d.add(elm.Resistor().down().label(f'{R}Ω'))
     
-    # Return to Centre Tap
+    # Return to Centre Tap ground path
     d.add(elm.Line().left().at(tap.start).length(4.5))
     
     return d.get_imagedata('png')
 
+# Display the diagram
 st.image(draw_centre_tap(), width=700)
-
-
-#[Image of centre-tapped full wave rectifier circuit diagram]
-
 
 st.divider()
 
 # =========================
-# 📊 WAVEFORMS & METRICS (SECOND)
+# 📊 WAVEFORMS & METRICS
 # =========================
 col1, col2 = st.columns([2, 1])
 
@@ -103,9 +104,14 @@ with col1:
     fig.add_trace(go.Scatter(x=t, y=Vb, name="Phase B (Bottom)", line=dict(color='green', dash='dash', width=1)))
     fig.add_trace(go.Scatter(x=t, y=Vout, name="Vout (Load)", line=dict(color='red', width=3)))
     
-    fig.update_layout(height=400, xaxis_title="Time (s)", yaxis_title="Voltage (V)", template="plotly_white")
+    fig.update_layout(
+        height=400, 
+        xaxis_title="Time (s)", 
+        yaxis_title="Voltage (V)", 
+        template="plotly_white",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
     st.plotly_chart(fig, use_container_width=True)
-
 
 with col2:
     st.subheader("📈 Performance Analysis")
@@ -121,8 +127,8 @@ with col2:
 # 📘 THEORY SUMMARY
 # =========================
 st.info(f"""
-**Operational Notes:**
-1. **Conduction:** D1 conducts during the positive half-cycle of Phase A, while D2 conducts during the positive half-cycle of Phase B.
-2. **Phase Shift:** The two secondary windings are $180^\circ$ out of phase relative to the centre tap.
-3. **Ripple:** The frequency of the output ripple is double the input frequency ({2*f} Hz).
+**Key Lab Observations:**
+1. **PIV Calculation:** For a centre-tapped rectifier, each diode must withstand $2V_m$. In this case, that is **{piv}V**.
+2. **Frequency:** The output ripple frequency is $2f = {2*f} Hz$.
+3. **Diode Drop:** Note that only one diode conducts per half-cycle, resulting in a single $V_d$ ({Vd}V) loss from the peak.
 """)
