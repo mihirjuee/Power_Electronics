@@ -3,116 +3,126 @@ import numpy as np
 import plotly.graph_objects as go
 import schemdraw
 import schemdraw.elements as elm
-import io
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Learn EE - Full Wave Rectifier", layout="wide")
+st.set_page_config(page_title="Learn EE - Centre Tapped Lab", layout="wide")
 
-st.title("⚡ Full Wave Bridge Rectifier with Capacitor Filter")
+st.title("⚡ Centre-Tapped Full Wave Rectifier Lab")
 
 # =========================
-# 🔧 SIDEBAR
+# 🔧 SIDEBAR PARAMETERS
 # =========================
 with st.sidebar:
-    st.header("Simulation Settings")
-    Vm = st.slider("Peak Voltage (Vm)", 10.0, 325.0, 100.0)
+    st.header("Transformer & Diode")
+    Vm = st.slider("Secondary Peak Voltage (Vm per half)", 5, 100, 30)
     f = st.slider("Frequency (Hz)", 10, 100, 50)
-    R = st.slider("Load Resistance (Ω)", 10, 2000, 500)
-    Vd = st.slider("Diode Forward Drop (V)", 0.0, 1.2, 0.7)
+    Vd = st.slider("Diode Forward Drop (Vd)", 0.0, 1.5, 0.7)
     
-    st.markdown("---")
-    C_micro = st.slider("Capacitance (µF)", 0, 5000, 1000)
+    st.divider()
+    st.header("Filter & Load")
+    R = st.slider("Load Resistance (R) [Ω]", 10, 2000, 500)
+    C_micro = st.slider("Capacitance (C) [µF]", 0, 2000, 470)
     C = C_micro * 1e-6
 
 # =========================
-# ⏱ MATH ENGINE
+# ⏱ PHYSICS ENGINE
 # =========================
 t = np.linspace(0, 0.1, 3000)
 dt = t[1] - t[0]
-Vin = Vm * np.sin(2 * np.pi * f * t)
 
-# Full Wave Rectification (2*Vd drop for bridge)
-Vrect = np.abs(Vin) - (2 * Vd)
-Vrect = np.maximum(Vrect, 0)
+Va = Vm * np.sin(2 * np.pi * f * t)
+Vb = -Va 
 
-# Filter Logic (Capacitor Discharge)
-Vcap = np.zeros_like(t)
+Vrect = np.maximum(np.maximum(Va, Vb) - Vd, 0)
+
+Vout = np.zeros_like(t)
 if C > 0:
     for i in range(1, len(t)):
-        # Discharge phase
-        V_discharge = Vcap[i-1] * np.exp(-dt / (R * C))
-        # Charging phase: Cap voltage follows Rectified voltage if Rectified is higher
-        Vcap[i] = max(Vrect[i], V_discharge)
+        V_discharge = Vout[i-1] * np.exp(-dt / (R * C))
+        Vout[i] = max(Vrect[i], V_discharge)
 else:
-    Vcap = Vrect
+    Vout = Vrect
 
-# Metrics
-Vdc = np.mean(Vcap)
-Vripple = np.max(Vcap[-500:]) - np.min(Vcap[-500:]) # Use steady state portion
-ripple_factor = Vripple / Vdc if Vdc > 0.1 else 0
+Vdc = np.mean(Vout)
+Idc = Vdc / R
+piv = 2 * Vm
 
 # =========================
-# 📊 UI LAYOUT
+# 🔌 CIRCUIT DIAGRAM (FIRST)
+# =========================
+st.subheader("🔌 Circuit Schematic")
+
+def draw_centre_tap():
+    d = schemdraw.Drawing(show=False)
+    
+    # Transformer Primary
+    S = d.add(elm.SourceSin().label('Primary'))
+    
+    # Centre Tapped Secondary
+    d.add(elm.Line().right().at(S.end).length(1))
+    d.add(elm.Inductor2().down().label('L1'))
+    tap = d.add(elm.Dot())
+    d.add(elm.Inductor2().down().label('L2'))
+    d.add(elm.Line().left().length(1))
+    
+    # Diodes
+    d1 = d.add(elm.Diode().right().at(S.end + (1,0)).label('D1'))
+    d2 = d.add(elm.Diode().right().at(S.end + (1,-4.5)).label('D2'))
+    
+    # Connection to Load
+    d.add(elm.Line().down().at(d1.end).to(d2.end))
+    mid = d.add(elm.Dot(at=d1.end + (0,-2.25)))
+    
+    d.add(elm.Line().right().at(mid.start).length(1))
+    d.add(elm.Capacitor().down().label(f'{C_micro}µF'))
+    d.add(elm.Line().right().length(1.5))
+    d.add(elm.Resistor().down().label(f'{R}Ω'))
+    
+    # Return to Centre Tap
+    d.add(elm.Line().left().at(tap.start).length(4.5))
+    
+    return d.get_imagedata('png')
+
+st.image(draw_centre_tap(), width=700)
+
+
+[Image of centre-tapped full wave rectifier circuit diagram]
+
+
+st.divider()
+
+# =========================
+# 📊 WAVEFORMS & METRICS (SECOND)
 # =========================
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.subheader("📊 Signal Analysis")
+    st.subheader("📊 Oscilloscope View")
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=t, y=Vin, name="Input AC", line=dict(color='gray', dash='dash')))
-    fig.add_trace(go.Scatter(x=t, y=Vrect, name="Rectified (Unfiltered)", line=dict(color='orange')))
-    fig.add_trace(go.Scatter(x=t, y=Vcap, name="Filtered DC Output", line=dict(color='red', width=3)))
+    fig.add_trace(go.Scatter(x=t, y=Va, name="Phase A (Top)", line=dict(color='blue', dash='dash', width=1)))
+    fig.add_trace(go.Scatter(x=t, y=Vb, name="Phase B (Bottom)", line=dict(color='green', dash='dash', width=1)))
+    fig.add_trace(go.Scatter(x=t, y=Vout, name="Vout (Load)", line=dict(color='red', width=3)))
     
-    fig.update_layout(height=450, xaxis_title="Time (s)", yaxis_title="Voltage (V)", legend_orientation="h")
+    fig.update_layout(height=400, xaxis_title="Time (s)", yaxis_title="Voltage (V)", template="plotly_white")
     st.plotly_chart(fig, use_container_width=True)
 
+
 with col2:
-    st.subheader("📈 Performance Metrics")
-    st.metric("Mean DC Voltage", f"{Vdc:.2f} V")
-    st.metric("Peak-to-Peak Ripple", f"{Vripple:.2f} V")
-    st.metric("Ripple Factor", f"{ripple_factor:.4f}")
+    st.subheader("📈 Performance Analysis")
+    st.metric("Avg DC Voltage", f"{Vdc:.2f} V")
+    st.metric("DC Current", f"{Idc*1000:.1f} mA")
+    st.error(f"PIV Rating (Min): {piv} V")
     
-    # Visual Efficiency Meter
-    efficiency = (Vdc / Vm) * 100
-    st.progress(min(int(efficiency), 100))
-    st.caption(f"Conversion Efficiency: {efficiency:.1f}%")
+    # Efficiency calculation
+    eff = (Vdc / Vm) * 100 if Vm > 0 else 0
+    st.write(f"**Rectification Efficiency:** {eff:.1f}%")
 
 # =========================
-# 🔌 CIRCUIT SCHEMATIC
-# =========================
-st.divider()
-st.subheader("🔌 Circuit Schematic")
-
-# Using a more reliable render method for Streamlit
-def draw_bridge():
-    d = schemdraw.Drawing(show=False)
-    # Source
-    S = d.add(elm.SourceSin().label('Vin'))
-    d.add(elm.Line().right().at(S.start))
-    d.add(elm.Line().right().at(S.end))
-    
-    # Bridge
-    B = d.add(elm.Rectifier().at((3, 0)).label('Bridge'))
-    
-    # Filter and Load
-    d.add(elm.Line().right().at(B.E))
-    d.add(elm.Capacitor().down().label(f'{C_micro}µF'))
-    d.add(elm.Line().right().length(1.5))
-    d.add(elm.Resistor().down().label(f'{R}Ω'))
-    d.add(elm.Line().left().length(3.5))
-    
-    # Convert to bytes for st.image
-    img_bytes = d.get_imagedata('png')
-    return img_bytes
-
-st.image(draw_bridge(), width=600)
-
-# =========================
-# 📘 QUICK THEORY
+# 📘 THEORY SUMMARY
 # =========================
 st.info(f"""
-**Key Insights for this Simulation:**
-* **Diode Drop:** In a Bridge Rectifier, the current always passes through **two** diodes, so the total drop is $2 \times V_d$ (approx {2*Vd}V).
-* **Ripple Frequency:** Notice the rectified peaks occur at **{2*f} Hz**. The capacitor has less time to discharge compared to a half-wave rectifier, resulting in a lower ripple factor.
-* **RC Time Constant:** The discharge is governed by $\\tau = R \\times C$. Currently, $\\tau$ = {R*C:.4f} seconds.
+**Operational Notes:**
+1. **Conduction:** D1 conducts during the positive half-cycle of Phase A, while D2 conducts during the positive half-cycle of Phase B.
+2. **Phase Shift:** The two secondary windings are $180^\circ$ out of phase relative to the centre tap.
+3. **Ripple:** The frequency of the output ripple is double the input frequency ({2*f} Hz).
 """)
