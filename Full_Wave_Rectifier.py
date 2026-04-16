@@ -8,11 +8,13 @@ import schemdraw.elements as elm
 st.set_page_config(page_title="Full Wave Rectifier Lab", layout="wide")
 
 st.title("⚡ Full Wave Rectifier with Capacitor Filter")
-st.write("Interactive simulation of AC to DC conversion with ripple reduction")
+st.write("Interactive AC to DC conversion with ripple reduction")
 
-# --- SIDEBAR CONTROLS ---
+# =========================
+# 🔧 SIDEBAR INPUTS
+# =========================
 with st.sidebar:
-    st.header("🔧 Input Parameters")
+    st.header("Input Parameters")
 
     Vm = st.slider("Peak Voltage (Vm)", 10, 325, 100)
     f = st.slider("Frequency (Hz)", 10, 100, 50)
@@ -20,43 +22,50 @@ with st.sidebar:
     Vd = st.slider("Diode Drop (V)", 0.0, 1.5, 0.7)
 
     st.markdown("---")
-    st.header("🔋 Filter Capacitor")
+    st.header("Filter")
 
     C_micro = st.slider("Capacitance (µF)", 1, 5000, 1000)
     C = C_micro * 1e-6
 
-# --- TIME AXIS ---
+# =========================
+# ⏱ TIME AXIS
+# =========================
 t = np.linspace(0, 0.1, 2000)
 dt = t[1] - t[0]
 
-# --- INPUT AC SIGNAL ---
+# =========================
+# ⚡ SIGNALS
+# =========================
 Vin = Vm * np.sin(2 * np.pi * f * t)
 
-# --- RECTIFIED OUTPUT ---
 Vrect = np.abs(Vin) - 2 * Vd
 Vrect[Vrect < 0] = 0
 
-# --- CAPACITOR FILTER ---
+# =========================
+# 🔋 CAPACITOR FILTER
+# =========================
 Vcap = np.zeros_like(t)
 
 for i in range(1, len(t)):
-    if Vrect[i] > Vcap[i-1]:
-        Vcap[i] = Vrect[i]  # Charging
+    if Vrect[i] > Vcap[i - 1]:
+        Vcap[i] = Vrect[i]  # charging
     else:
-        Vcap[i] = Vcap[i-1] * np.exp(-dt / (R * C))  # Discharging
+        Vcap[i] = Vcap[i - 1] * np.exp(-dt / (R * C))  # discharging
 
-# --- CALCULATIONS ---
+# =========================
+# 📊 CALCULATIONS
+# =========================
 Vdc = np.mean(Vcap)
 Vripple = np.max(Vcap) - np.min(Vcap)
 ripple_factor = Vripple / Vdc if Vdc != 0 else 0
 Idc = Vdc / R if R != 0 else 0
 
-# --- LAYOUT ---
+# =========================
+# 📊 LAYOUT
+# =========================
 col1, col2 = st.columns(2)
 
-# =========================
-# 📊 WAVEFORMS
-# =========================
+# --- WAVEFORMS ---
 with col1:
     st.subheader("📊 Waveforms")
 
@@ -73,81 +82,67 @@ with col1:
 
     st.plotly_chart(fig, use_container_width=True)
 
-# =========================
-# 📈 OUTPUT METRICS
-# =========================
+# --- METRICS ---
 with col2:
     st.subheader("📈 Output Parameters")
 
-    st.metric("DC Voltage (Vdc)", f"{Vdc:.2f} V")
+    st.metric("DC Voltage", f"{Vdc:.2f} V")
     st.metric("Ripple Voltage", f"{Vripple:.2f} V")
     st.metric("Ripple Factor", f"{ripple_factor:.4f}")
     st.metric("Load Current", f"{Idc:.2f} A")
 
 # =========================
-# 🔌 CIRCUIT DIAGRAM
+# 🔌 CIRCUIT DIAGRAM (FIXED)
 # =========================
 st.divider()
-st.subheader("🔌 Circuit Diagram: Full Wave Bridge Rectifier with Filter")
+st.subheader("🔌 Circuit Diagram")
 
-with schemdraw.Drawing() as d:
+d = schemdraw.Drawing()
 
-    # AC Source
-    source = d.add(elm.SourceSin().label("AC Supply"))
+# AC source
+d += elm.SourceSin().label("AC")
 
-    # Move right
-    d += elm.Line().right()
+# Bridge Rectifier
+d += elm.Line().right()
+d += elm.Diode().right().label("D1")
+d += elm.Line().down()
+d += elm.Diode().down().label("D2")
+d += elm.Line().left()
+d += elm.Diode().left().label("D3")
+d += elm.Line().up()
+d += elm.Diode().up().label("D4")
 
-    # Bridge - Top diode
-    d += elm.Diode().right().label("D1")
+# Output side
+d += elm.Line().right().length(2)
 
-    # Top right node
-    d += elm.Line().down()
+# Capacitor
+d += elm.Capacitor().down().label("C")
 
-    # Right diode
-    d += elm.Diode().down().label("D2")
+# Load resistor
+d += elm.Resistor().down().label("R")
 
-    # Bottom node
-    d += elm.Line().left()
+# Ground
+d += elm.Ground()
 
-    # Bottom diode
-    d += elm.Diode().left().label("D3")
-
-    # Left diode
-    d += elm.Diode().up().label("D4")
-
-    # Output line
-    d += elm.Line().right().length(2)
-
-    # Capacitor
-    d += elm.Capacitor().down().label("C")
-
-    # Load resistor
-    d += elm.Resistor().down().label("R Load")
-
-    # Ground
-    d += elm.Ground()
-
-    fig = d.draw()
-st.pyplot(fig)
+# ✅ FIXED RENDERING
+fig_diag = d.draw(show=False)
+st.pyplot(fig_diag)
 
 # =========================
 # 📘 THEORY
 # =========================
 st.divider()
 st.info(f"""
-⚡ **Working Principle:**
+⚡ **Working Principle**
 
 • Full-wave rectifier converts both halves of AC into DC  
-• Capacitor charges at peaks and discharges slowly  
-• This reduces ripple significantly  
+• Capacitor smooths output by storing charge  
+• Ripple frequency = {2*f} Hz  
 
-📉 **Ripple Frequency:** {2*f} Hz  
+📉 **Observations**
+- Increase capacitance → ripple decreases  
+- Increase load → ripple increases  
 
-📊 **Key Insight:**
-- Increase capacitance → smoother output  
-- Increase load current → more ripple  
-
-📐 Approx Formula:
+📐 **Formula**
 Vr ≈ I / (f × C)
 """)
