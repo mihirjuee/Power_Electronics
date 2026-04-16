@@ -86,7 +86,7 @@ def draw_centre_tap():
 st.image(draw_centre_tap(), width=700)
 
 
-[Image of centre-tapped full wave rectifier circuit diagram]
+#[Image of centre-tapped full wave rectifier circuit diagram]
 
 
 st.divider()
