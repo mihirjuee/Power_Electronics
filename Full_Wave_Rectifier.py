@@ -128,7 +128,8 @@ with schemdraw.Drawing() as d:
     # Ground
     d += elm.Ground()
 
-    st.pyplot(d.draw())
+    fig = d.draw()
+st.pyplot(fig)
 
 # =========================
 # 📘 THEORY
