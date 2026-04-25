@@ -47,6 +47,7 @@ def draw_circuit(pair):
         c2 = "blue" if pair == "T3T4" else "black"
         
         # Circuit Layout
+        
         d += elm.SourceSin().label("AC")
         d += elm.Line().right(1)
         d += elm.Dot()
@@ -69,7 +70,7 @@ def draw_circuit(pair):
         d.pop()
         d += elm.Line().down(1)
         d += (T4 := elm.SCR().label("T4").color(c2).reverse())
-       
+        d += elm.Line().down(1)
         d += elm.Line().right(2)
         return d.fig
 
