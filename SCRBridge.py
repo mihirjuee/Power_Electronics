@@ -1,160 +1,73 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
-import schemdraw
-import schemdraw.elements as elm
 
-# ================= PAGE =================
-st.set_page_config(page_title="SCR Full Converter", layout="wide")
+# ================= PAGE CONFIG =================
+st.set_page_config(page_title="SCR Full Converter Pro", layout="wide")
 st.title("⚡ Single-Phase Fully Controlled Bridge Converter")
 
 # ================= SIDEBAR =================
-st.sidebar.header("🔧 Controls")
-
+st.sidebar.header("🔧 Simulation Parameters")
 Vm = st.sidebar.number_input("Peak Voltage (V)", value=325.0)
 f = st.sidebar.number_input("Frequency (Hz)", value=50.0)
 alpha_deg = st.sidebar.slider("Firing Angle α (deg)", 0, 180, 60)
 R = st.sidebar.number_input("Load Resistance (Ω)", value=50.0)
+load_type = st.sidebar.radio("Load Type", ["Resistive (R)", "Inductive (R-L)"])
 
 # ================= CALCULATIONS =================
 alpha = np.deg2rad(alpha_deg)
-
 theta = np.linspace(0, 2*np.pi, 1000)
-theta_deg = np.degrees(theta)
-
 vin = Vm * np.sin(theta)
-vout = np.zeros_like(vin)
 
-# Output waveform
-for i in range(len(theta)):
-    if alpha <= theta[i] <= np.pi:
-        vout[i] = Vm * np.sin(theta[i])
-    elif np.pi + alpha <= theta[i] <= 2*np.pi:
-        vout[i] = Vm * np.sin(theta[i])
-    else:
-        vout[i] = 0
+# Determine output voltage based on load type
+if load_type == "Resistive (R)":
+    # For R load, output is zero when SCRs are off
+    mask = ((theta >= alpha) & (theta <= np.pi)) | ((theta >= np.pi + alpha) & (theta <= 2*np.pi))
+    vout = np.where(mask, np.abs(vin), 0)
+    Vdc = (2 * Vm / np.pi) * np.cos(alpha)
+else:
+    # For R-L load (assuming high inductance, constant current)
+    # Output follows input for the full conduction period
+    # Note: In practice, R-L allows negative voltage (Inversion)
+    vout = np.where((theta >= alpha) & (theta < np.pi + alpha), vin, -vin)
+    Vdc = (2 * Vm / np.pi) * np.cos(alpha)
 
 iout = vout / R
 
-# ================= DETERMINE ACTIVE SCR =================
-# just for diagram (based on α position)
-if alpha < np.pi:
-    pair = "T1T2"
-else:
-    pair = "T3T4"
-
-# ================= CIRCUIT =================
-st.subheader("🔌 Circuit Diagram")
-
-def draw_circuit(pair):
-    with schemdraw.Drawing() as d:
-
-        d += elm.SourceSin().label("AC")
-        d += elm.Line().right()
-
-        c1 = "red" if pair == "T1T2" else "black"
-        c2 = "blue" if pair == "T3T4" else "black"
-
-        # Top
-        d.push()
-        d += elm.Diode().right().label("T1").color(c1)
-        d += elm.Line().right()
-        d += elm.Resistor().down().label("Load")
-        d += elm.Line().left()
-        d += elm.Diode().left().label("T2").color(c1)
-        d.pop()
-
-        # Bottom
-        d.push()
-        d += elm.Diode().down().label("T3").color(c2)
-        d += elm.Line().down()
-        d += elm.Diode().up().label("T4").color(c2)
-        d.pop()
-
-        fig = d.draw()
-        return fig.fig
-
-st.pyplot(draw_circuit(pair))
-
 # ================= WAVEFORMS =================
 st.subheader("📈 Waveforms")
+fig, ax = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
 
-# Increase vertical spacing using gridspec
-fig, ax = plt.subplots(3, 1, figsize=(10, 9), sharex=True)
-
-# ================= INPUT VOLTAGE =================
-ax[0].plot(theta_deg, vin, color="black", linewidth=1.5)
-
-# Firing angle lines
-ax[0].axvline(alpha_deg, linestyle='--', color='red', label='T1,T2 firing')
-ax[0].axvline(180 + alpha_deg, linestyle='--', color='blue', label='T3,T4 firing')
-
-# Shaded conduction regions
-ax[0].axvspan(alpha_deg, 180, color='red', alpha=0.1)
-ax[0].axvspan(180 + alpha_deg, 360, color='blue', alpha=0.1)
-
-ax[0].set_title("Input Voltage with Conduction Intervals")
+# Plotting
+ax[0].plot(np.degrees(theta), vin, label="Input Voltage", color="gray", linestyle="--")
+ax[0].plot(np.degrees(theta), vout, label="Output Voltage", color="red", linewidth=2)
+ax[0].set_title("Input vs Output Voltage")
 ax[0].set_ylabel("Voltage (V)")
-ax[0].legend(loc="upper right")
-ax[0].grid()
+ax[0].grid(True)
+ax[0].legend()
 
-# ================= OUTPUT VOLTAGE =================
-# Masks
-mask1 = (theta >= alpha) & (theta <= np.pi)
-mask2 = (theta >= np.pi + alpha) & (theta <= 2*np.pi)
-
-# Plot only conduction regions
-ax[1].plot(theta_deg[mask1], vout[mask1], color='red', linewidth=2, label='T1-T2')
-ax[1].plot(theta_deg[mask2], vout[mask2], color='blue', linewidth=2, label='T3-T4')
-
-# Fill regions
-ax[1].fill_between(theta_deg[mask1], vout[mask1], color='red', alpha=0.2)
-ax[1].fill_between(theta_deg[mask2], vout[mask2], color='blue', alpha=0.2)
-
-ax[1].set_title("Output Voltage (Always Positive)")
-ax[1].set_ylabel("Voltage (V)")
+ax[1].plot(np.degrees(theta), iout, label="Load Current", color="blue", linewidth=2)
+ax[1].set_title("Load Current")
+ax[1].set_xlabel("Angle (degrees)")
+ax[1].set_ylabel("Current (A)")
+ax[1].grid(True)
 ax[1].legend()
-ax[1].grid()
-
-# ================= LOAD CURRENT =================
-ax[2].plot(theta_deg[mask1], iout[mask1], color='red', linewidth=2)
-ax[2].plot(theta_deg[mask2], iout[mask2], color='blue', linewidth=2)
-
-ax[2].fill_between(theta_deg[mask1], iout[mask1], color='red', alpha=0.2)
-ax[2].fill_between(theta_deg[mask2], iout[mask2], color='blue', alpha=0.2)
-
-ax[2].set_title("Load Current (Always Positive)")
-ax[2].set_xlabel("Angle (degrees)")
-ax[2].set_ylabel("Current (A)")
-ax[2].grid()
-
-# ================= COMMON SETTINGS =================
-for a in ax:
-    a.set_xlim(0, 360)
-    a.set_xticks([0, 90, 180, 270, 360])
-
-# 🔥 IMPORTANT: increase vertical spacing
-plt.tight_layout(h_pad=3)   # <-- THIS adds gap between plots
 
 st.pyplot(fig)
 
-# ================= RESULTS =================
-Vdc = (2 * Vm / np.pi) * np.cos(alpha)
-Idc = Vdc / R
+# ================= RESULTS & THEORY =================
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("📊 Output Metrics")
+    st.metric("Avg Output Voltage (Vdc)", f"{Vdc:.2f} V")
+    st.metric("Avg Load Current (Idc)", f"{Vdc/R:.2f} A")
 
-st.subheader("📊 Output Values")
-
-c1, c2 = st.columns(2)
-c1.metric("Average Output Voltage", f"{Vdc:.2f} V")
-c2.metric("Average Load Current", f"{Idc:.2f} A")
-
-# ================= THEORY =================
-st.subheader("📘 Working")
-
-st.write(f"""
-- T1 & T2 conduct from α to π  
-- T3 & T4 conduct from π + α to 2π  
-- Output controlled by firing angle  
-
-### Current α = {alpha_deg}°
-""")
+with col2:
+    st.subheader("📘 Theoretical Background")
+    st.latex(r"V_{dc} = \frac{2V_m}{\pi} \cos(\alpha)")
+    st.write("""
+    * **Firing Angle (α):** Controls the delay of SCR triggering.
+    * **Resistive Load:** The output voltage is always non-negative.
+    * **Inductive Load:** Allows the output voltage to become negative for $\alpha > 90^\circ$, 
+      operating the converter in **Inversion Mode** (sending power back to the source).
+    """)
