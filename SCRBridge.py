@@ -62,6 +62,10 @@ if run:
     theta_all = np.linspace(0, 2*np.pi, len(t))
     theta_deg_all = np.degrees(theta_all)
 
+    vin = Vm * np.sin(theta_all)
+    vout = np.zeros_like(vin)
+    iout = np.zeros_like(vin)
+
     for i in range(len(theta_all)):
 
         theta = theta_all[i]
@@ -70,51 +74,62 @@ if run:
         # ================= SCR CONDUCTION =================
         if alpha <= theta <= np.pi:
             pair = "T1T2"
+            color = "red"
+            vout[i] = Vm * np.sin(theta)
         elif np.pi + alpha <= theta <= 2*np.pi:
             pair = "T3T4"
+            color = "blue"
+            vout[i] = Vm * np.sin(theta)
         else:
             pair = "NONE"
+            color = "black"
+            vout[i] = 0
+
+        iout[i] = vout[i] / R
 
         # ================= CIRCUIT =================
         fig1 = draw_circuit(pair)
         circuit_placeholder.pyplot(fig1)
 
-        # ================= FIRING PULSES =================
-        pulse = np.zeros(i+1)
+        # ================= WAVEFORMS =================
+        fig2, ax = plt.subplots(3, 1, figsize=(10, 7))
 
-        for k in range(i+1):
-            th = theta_all[k]
+        # -------- Input Voltage --------
+        ax[0].plot(theta_deg_all[:i+1], vin[:i+1], label="Vin")
+        ax[0].axvline(alpha_deg, linestyle='--', color="red")
+        ax[0].axvline(180 + alpha_deg, linestyle='--', color="blue")
 
-            # Narrow pulse width (~2 degrees)
-            if (alpha <= th <= alpha + np.deg2rad(2)) or \
-               (np.pi + alpha <= th <= np.pi + alpha + np.deg2rad(2)):
-                pulse[k] = 1
+        ax[0].set_title("Input Voltage with Firing Angle")
+        ax[0].set_ylabel("Voltage (V)")
+        ax[0].grid()
 
-        # ================= PLOT =================
-        fig2, ax = plt.subplots(figsize=(8,3))
+        # Label SCR firing points
+        if abs(theta - alpha) < 0.02:
+            ax[0].text(theta_deg, 0, "T1,T2", color="red")
+        if abs(theta - (np.pi + alpha)) < 0.02:
+            ax[0].text(theta_deg, 0, "T3,T4", color="blue")
 
-        ax.plot(theta_deg_all[:i+1], pulse)
+        # -------- Output Voltage --------
+        ax[1].plot(theta_deg_all[:i+1], vout[:i+1], color=color)
+        ax[1].set_title("Output Voltage")
+        ax[1].set_ylabel("Voltage (V)")
+        ax[1].grid()
 
-        ax.set_title("Firing Pulses vs Angle")
-        ax.set_xlabel("Angle (degrees)")
-        ax.set_ylabel("Pulse")
+        # -------- Load Current --------
+        ax[2].plot(theta_deg_all[:i+1], iout[:i+1], color=color)
+        ax[2].set_title("Load Current")
+        ax[2].set_xlabel("Angle (degrees)")
+        ax[2].set_ylabel("Current (A)")
+        ax[2].grid()
 
-        ax.set_xlim(0, 360)
-        ax.set_ylim(-0.2, 1.2)
-
-        # Mark firing angles
-        ax.axvline(alpha_deg, linestyle='--')
-        ax.axvline(180 + alpha_deg, linestyle='--')
-
-        # Better ticks
-        ax.set_xticks([0, 90, 180, 270, 360])
-
-        ax.grid()
+        # Common formatting
+        for a in ax:
+            a.set_xlim(0, 360)
+            a.set_xticks([0, 90, 180, 270, 360])
 
         wave_placeholder.pyplot(fig2)
 
         time.sleep(0.05)
-
 # ================= INFO =================
 st.subheader("📘 Working")
 
