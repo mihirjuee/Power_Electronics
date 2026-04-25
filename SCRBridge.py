@@ -35,45 +35,45 @@ iout = vout / R
 # ================= CIRCUIT DIAGRAM =================
 st.subheader("🔌 Circuit Diagram")
 
-# Determine active pair for coloring logic
+# Determine active pair
 pair = "T1T2" if alpha_deg < 90 else "T3T4"
 
-def get_circuit_figure(pair):
-    # Initialize drawing and set to matplotlib backend
-    d = schemdraw.Drawing(backend='matplotlib')
-    
-    # Define source
-    d += elm.SourceSin().label("AC")
-    
-    # Define Bridge
-    # T1/T2 branch (left/top)
-    d += elm.Line().right()
-    c1 = "red" if pair == "T1T2" else "black"
-    d += (T1 := elm.Diode().right().label("T1").color(c1))
-    
-    # Load
-    d += elm.Line().right()
-    d += elm.Resistor().down().label("Load")
-    d += elm.Line().left()
-    
-    # T2
-    c1 = "red" if pair == "T1T2" else "black"
-    d += (T2 := elm.Diode().left().label("T2").color(c1))
-    
-    # T3/T4 branch (bottom)
-    d.push() # Return to node after source
-    d += elm.Line().down()
-    c2 = "blue" if pair == "T3T4" else "black"
-    d += (T3 := elm.Diode().right().label("T3").color(c2))
-    d += (T4 := elm.Diode().left().label("T4").color(c2))
-    d.pop()
-    
-    # Return the matplotlib figure object directly
-    return d.fig
+def draw_circuit(pair):
+    # Using the context manager ensures the figure is correctly initialized
+    with schemdraw.Drawing(backend='matplotlib') as d:
+        d.config(fontsize=12)
+        
+        # Define colors
+        c1 = "red" if pair == "T1T2" else "black"
+        c2 = "blue" if pair == "T3T4" else "black"
+        
+        # Circuit Layout
+        d += elm.SourceSin().label("AC")
+        d += elm.Line().right()
+        
+        # Upper bridge
+        d += (T1 := elm.Diode().label("T1").color(c1))
+        d += elm.Line().right()
+        
+        # Load
+        d += (L1 := elm.Resistor().down().label("Load"))
+        
+        # Lower bridge
+        d += elm.Line().left()
+        d += (T2 := elm.Diode().label("T2").color(c1).reverse())
+        
+        # Return to source node for bottom diodes
+        d.push()
+        d += elm.Line().down()
+        d += (T3 := elm.Diode().label("T3").color(c2))
+        d += (T4 := elm.Diode().label("T4").color(c2).reverse())
+        d.pop()
+        
+        return d.fig
 
-# Render the circuit
-fig_circuit = get_circuit_figure(pair)
-st.pyplot(fig_circuit)
+# Render using the figure object directly
+fig = draw_circuit(pair)
+st.pyplot(fig)
 
 # ================= WAVEFORMS =================
 st.subheader("📈 Waveforms")
