@@ -38,31 +38,43 @@ wave_placeholder = st.empty()
 # ================= FUNCTION: DRAW CIRCUIT =================
 def draw_circuit(state):
     with schemdraw.Drawing() as d:
+
+        # Input source
         d += elm.SourceV().label('Vin')
-
         d += elm.Line().right()
 
-        # MOSFET (using NFET)
-        mos_label = "MOSFET (ON)" if state else "MOSFET (OFF)"
-        d += elm.NFet().label(mos_label)
+        # MOSFET
+        mos_label = "ON" if state else "OFF"
+        mos = elm.NFet().label(f"MOSFET\n({mos_label})")
+        d += mos
 
+        # Node after MOSFET
         d += elm.Line().right()
+
+        # Save node for diode branch
+        d.push()
+
+        # Inductor path
         d += elm.Inductor().label('L')
-
         d += elm.Line().right()
         d += elm.Dot()
 
+        # Output capacitor
         d.push()
         d += elm.Capacitor().down().label('C')
         d += elm.Ground()
         d.pop()
 
+        # Load resistor
         d += elm.Line().right()
         d += elm.Resistor().down().label('R')
         d += elm.Ground()
 
-        # Freewheeling diode
-        d += elm.Diode().at(d.elements[2].end).down().label('D')
+        # Back to switch node
+        d.pop()
+
+        # Freewheeling diode branch (CORRECT WAY)
+        d += elm.Diode().down().label('D')
         d += elm.Ground()
 
         return d.draw()
