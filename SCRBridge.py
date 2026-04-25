@@ -52,6 +52,7 @@ def draw_circuit(pair):
         d += elm.Line().up(1)
         # Upper bridge
         d += (T1 := elm.Diode().label("T1").color(c1))
+        d += elm.Line().up()
         d += elm.Line().right()
         
         # Load
