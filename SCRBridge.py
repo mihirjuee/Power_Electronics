@@ -59,11 +59,15 @@ def draw_circuit(active_pair):
 
 # ================= ANIMATION =================
 if run:
-    for i in range(len(t)):
+    theta_all = np.linspace(0, 2*np.pi, len(t))
+    theta_deg_all = np.degrees(theta_all)
 
-        theta = t[i]
+    for i in range(len(theta_all)):
 
-        # Determine conducting SCR pair
+        theta = theta_all[i]
+        theta_deg = theta_deg_all[i]
+
+        # ================= SCR CONDUCTION =================
         if alpha <= theta <= np.pi:
             pair = "T1T2"
         elif np.pi + alpha <= theta <= 2*np.pi:
@@ -71,22 +75,40 @@ if run:
         else:
             pair = "NONE"
 
-        # Draw circuit
+        # ================= CIRCUIT =================
         fig1 = draw_circuit(pair)
         circuit_placeholder.pyplot(fig1)
 
-        # Firing pulse visualization
-        pulse = np.zeros_like(t[:i+1])
+        # ================= FIRING PULSES =================
+        pulse = np.zeros(i+1)
 
         for k in range(i+1):
-            th = t[k]
-            if abs(th - alpha) < 0.05 or abs(th - (np.pi + alpha)) < 0.05:
+            th = theta_all[k]
+
+            # Narrow pulse width (~2 degrees)
+            if (alpha <= th <= alpha + np.deg2rad(2)) or \
+               (np.pi + alpha <= th <= np.pi + alpha + np.deg2rad(2)):
                 pulse[k] = 1
 
+        # ================= PLOT =================
         fig2, ax = plt.subplots(figsize=(8,3))
-        ax.plot(t[:i+1], pulse)
-        ax.set_title("Firing Pulses")
+
+        ax.plot(theta_deg_all[:i+1], pulse)
+
+        ax.set_title("Firing Pulses vs Angle")
+        ax.set_xlabel("Angle (degrees)")
+        ax.set_ylabel("Pulse")
+
+        ax.set_xlim(0, 360)
         ax.set_ylim(-0.2, 1.2)
+
+        # Mark firing angles
+        ax.axvline(alpha_deg, linestyle='--')
+        ax.axvline(180 + alpha_deg, linestyle='--')
+
+        # Better ticks
+        ax.set_xticks([0, 90, 180, 270, 360])
+
         ax.grid()
 
         wave_placeholder.pyplot(fig2)
