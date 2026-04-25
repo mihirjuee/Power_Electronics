@@ -32,34 +32,48 @@ else:
 iout = vout / R
 
 # ================= CIRCUIT DIAGRAM =================
+# ================= CIRCUIT DIAGRAM =================
 st.subheader("🔌 Circuit Diagram")
+
 # Determine active pair for coloring logic
 pair = "T1T2" if alpha_deg < 90 else "T3T4"
 
-def draw_circuit(pair):
-    d = schemdraw.Drawing()
+def get_circuit_figure(pair):
+    # Initialize drawing and set to matplotlib backend
+    d = schemdraw.Drawing(backend='matplotlib')
+    
+    # Define source
     d += elm.SourceSin().label("AC")
+    
+    # Define Bridge
+    # T1/T2 branch (left/top)
     d += elm.Line().right()
-    
-    # Bridge configuration
     c1 = "red" if pair == "T1T2" else "black"
-    c2 = "blue" if pair == "T3T4" else "black"
-    
     d += (T1 := elm.Diode().right().label("T1").color(c1))
+    
+    # Load
     d += elm.Line().right()
     d += elm.Resistor().down().label("Load")
     d += elm.Line().left()
+    
+    # T2
+    c1 = "red" if pair == "T1T2" else "black"
     d += (T2 := elm.Diode().left().label("T2").color(c1))
     
-    d.push()
-    d += (T3 := elm.Diode().down().label("T3").color(c2))
+    # T3/T4 branch (bottom)
+    d.push() # Return to node after source
     d += elm.Line().down()
-    d += (T4 := elm.Diode().up().label("T4").color(c2))
+    c2 = "blue" if pair == "T3T4" else "black"
+    d += (T3 := elm.Diode().right().label("T3").color(c2))
+    d += (T4 := elm.Diode().left().label("T4").color(c2))
     d.pop()
     
-    return d
+    # Return the matplotlib figure object directly
+    return d.fig
 
-st.pyplot(draw_circuit(pair).draw())
+# Render the circuit
+fig_circuit = get_circuit_figure(pair)
+st.pyplot(fig_circuit)
 
 # ================= WAVEFORMS =================
 st.subheader("📈 Waveforms")
