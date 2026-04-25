@@ -72,6 +72,10 @@ def draw_circuit(pair):
         d += (T4 := elm.SCR().label("T4").color(c2).reverse())
         d += elm.Line().down(1)
         d += elm.Line().right(2)
+        d += elm.Line().up(1)
+        d += elm.Dot()
+        d += elm.Line().left(2)
+        d += elm.Line().up(2)
         return d.fig
 
 # Render using the figure object directly
