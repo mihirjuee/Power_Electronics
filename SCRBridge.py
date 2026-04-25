@@ -61,13 +61,14 @@ def draw_circuit(pair):
         d += elm.Line().left(1)
         d += elm.Line().up()
         d += (T2 := elm.SCR().label("T2").color(c1))
+        d += (T3 := elm.Diode().label("T3").color(c2))
         
         d += elm.Line().left()
         d += elm.Line().up()
         d.pop()
         d += elm.Line().down(1)
         d += (T4 := elm.SCR().label("T4").color(c2).reverse())
-        d += (T3 := elm.Diode().label("T3").color(c2))
+        
         d += elm.Line().up()
         d += elm.Line().right()
                 
