@@ -40,7 +40,7 @@ pair = "T1T2" if alpha_deg < 90 else "T3T4"
 def draw_circuit(pair):
     # Using the context manager ensures the figure is correctly initialized
     with schemdraw.Drawing(backend='matplotlib') as d:
-        d.config(fontsize=8)
+        d.config(fontsize=10)
         
         # Define colors
         c1 = "red" if pair == "T1T2" else "black"
