@@ -85,6 +85,15 @@ ax[0].set_title("Input vs Output Voltage")
 ax[0].set_ylabel("Voltage (V)")
 ax[0].grid(True); ax[0].legend()
 
+# ================= MARKING ALPHA =================
+# Add annotation for T1/T2 firing
+ax[0].annotate(r'$\alpha$', xy=(alpha_deg, 0), xytext=(alpha_deg + 10, Vm/2),
+               arrowprops=dict(facecolor='red', shrink=0.05), fontsize=12, color='red')
+
+# Add annotation for T3/T4 firing (at 180 + alpha)
+ax[0].annotate(r'$\pi+\alpha$', xy=(180 + alpha_deg, 0), xytext=(180 + alpha_deg + 10, Vm/2),
+               arrowprops=dict(facecolor='blue', shrink=0.05), fontsize=12, color='blue')
+
 ax[1].plot(np.degrees(theta), iout, label="Load Current", color="blue", linewidth=2)
 ax[1].set_title("Load Current")
 ax[1].set_xlabel("Angle (degrees)")
