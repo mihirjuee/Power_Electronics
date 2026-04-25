@@ -49,10 +49,13 @@ def draw_circuit(pair):
         # Circuit Layout
         d += elm.SourceSin().label("AC")
         d += elm.Line().right(1)
-        # Left Leg
         d.push()
+        d += elm.Line().up(1)
+        # Left Leg
+        
         d += (T1 := elm.Diode().label("T1").color(c1))
         d.pop()
+        d += elm.Line().down(1)
         d += (T4 := elm.Diode().label("T4").color(c2).reverse())
         
         d += elm.Line().up()
