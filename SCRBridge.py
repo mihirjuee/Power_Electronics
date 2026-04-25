@@ -79,61 +79,62 @@ st.pyplot(draw_circuit(pair))
 # ================= WAVEFORMS =================
 st.subheader("📈 Waveforms")
 
-fig, ax = plt.subplots(3, 1, figsize=(10, 7))
+# Increase vertical spacing using gridspec
+fig, ax = plt.subplots(3, 1, figsize=(10, 9), sharex=True)
 
-# ===== INPUT VOLTAGE =====
-ax[0].plot(theta_deg, vin, color="black")
+# ================= INPUT VOLTAGE =================
+ax[0].plot(theta_deg, vin, color="black", linewidth=1.5)
 
-# Mark firing angles
+# Firing angle lines
 ax[0].axvline(alpha_deg, linestyle='--', color='red', label='T1,T2 firing')
 ax[0].axvline(180 + alpha_deg, linestyle='--', color='blue', label='T3,T4 firing')
 
-# Shade conduction regions
+# Shaded conduction regions
 ax[0].axvspan(alpha_deg, 180, color='red', alpha=0.1)
 ax[0].axvspan(180 + alpha_deg, 360, color='blue', alpha=0.1)
 
 ax[0].set_title("Input Voltage with Conduction Intervals")
 ax[0].set_ylabel("Voltage (V)")
-ax[0].legend()
+ax[0].legend(loc="upper right")
 ax[0].grid()
 
-# ===== OUTPUT VOLTAGE =====
-vout_pos = np.maximum(vout, 0)  # remove negative part
-
-# Plot segments separately for coloring
+# ================= OUTPUT VOLTAGE =================
+# Masks
 mask1 = (theta >= alpha) & (theta <= np.pi)
 mask2 = (theta >= np.pi + alpha) & (theta <= 2*np.pi)
 
-ax[1].plot(theta_deg[mask1], vout_pos[mask1], color='red', label='T1-T2 conduction')
-ax[1].plot(theta_deg[mask2], vout_pos[mask2], color='blue', label='T3-T4 conduction')
+# Plot only conduction regions
+ax[1].plot(theta_deg[mask1], vout[mask1], color='red', linewidth=2, label='T1-T2')
+ax[1].plot(theta_deg[mask2], vout[mask2], color='blue', linewidth=2, label='T3-T4')
 
-# Shade
-ax[1].fill_between(theta_deg[mask1], vout_pos[mask1], color='red', alpha=0.2)
-ax[1].fill_between(theta_deg[mask2], vout_pos[mask2], color='blue', alpha=0.2)
+# Fill regions
+ax[1].fill_between(theta_deg[mask1], vout[mask1], color='red', alpha=0.2)
+ax[1].fill_between(theta_deg[mask2], vout[mask2], color='blue', alpha=0.2)
 
-ax[1].set_title("Output Voltage (Rectified, Non-negative)")
+ax[1].set_title("Output Voltage (Always Positive)")
 ax[1].set_ylabel("Voltage (V)")
 ax[1].legend()
 ax[1].grid()
 
-# ===== CURRENT =====
-iout_pos = vout_pos / R
+# ================= LOAD CURRENT =================
+ax[2].plot(theta_deg[mask1], iout[mask1], color='red', linewidth=2)
+ax[2].plot(theta_deg[mask2], iout[mask2], color='blue', linewidth=2)
 
-ax[2].plot(theta_deg[mask1], iout_pos[mask1], color='red')
-ax[2].plot(theta_deg[mask2], iout_pos[mask2], color='blue')
+ax[2].fill_between(theta_deg[mask1], iout[mask1], color='red', alpha=0.2)
+ax[2].fill_between(theta_deg[mask2], iout[mask2], color='blue', alpha=0.2)
 
-ax[2].fill_between(theta_deg[mask1], iout_pos[mask1], color='red', alpha=0.2)
-ax[2].fill_between(theta_deg[mask2], iout_pos[mask2], color='blue', alpha=0.2)
-
-ax[2].set_title("Load Current (Non-negative)")
+ax[2].set_title("Load Current (Always Positive)")
 ax[2].set_xlabel("Angle (degrees)")
 ax[2].set_ylabel("Current (A)")
 ax[2].grid()
 
-# ===== COMMON SETTINGS =====
+# ================= COMMON SETTINGS =================
 for a in ax:
     a.set_xlim(0, 360)
     a.set_xticks([0, 90, 180, 270, 360])
+
+# 🔥 IMPORTANT: increase vertical spacing
+plt.tight_layout(h_pad=3)   # <-- THIS adds gap between plots
 
 st.pyplot(fig)
 
