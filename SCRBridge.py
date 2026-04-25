@@ -56,7 +56,10 @@ def draw_circuit(pair):
         
         # Load
         d += (L1 := elm.Resistor().down().label("Load"))
-        
+        d += elm.Line().down()
+        d += elm.Line().left()
+        d += elm.Line().left()
+        d += elm.Line().up()
         # Lower bridge
         d += elm.Line().left()
         d += (T2 := elm.Diode().label("T2").color(c1).reverse())
