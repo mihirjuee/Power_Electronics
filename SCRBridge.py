@@ -59,13 +59,15 @@ def draw_circuit(pair):
         d += (L1 := elm.Resistor().down().label("Load"))
         d += elm.Line().down()
         d += elm.Line().left()
-        d += (T2 := elm.Diode().label("T2").color(c1))
+        d += elm.Line().up()
+        d += (T2 := elm.SCR().label("T2").color(c1))
+        
         d += elm.Line().left()
         d += elm.Line().up()
         d.pop()
         d += elm.Line().down(1)
         d += (T4 := elm.SCR().label("T4").color(c2).reverse())
-        
+        d += (T3 := elm.Diode().label("T3").color(c2))
         d += elm.Line().up()
         d += elm.Line().right()
         
@@ -77,7 +79,7 @@ def draw_circuit(pair):
         # Return to source node for bottom diodes
         d.push()
         d += elm.Line().down()
-        d += (T3 := elm.Diode().label("T3").color(c2))
+        
         
         d.pop()
         
