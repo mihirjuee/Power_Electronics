@@ -32,7 +32,6 @@ else:
 iout = vout / R
 
 # ================= CIRCUIT DIAGRAM =================
-# ================= CIRCUIT DIAGRAM =================
 st.subheader("🔌 Circuit Diagram")
 
 # Determine active pair
@@ -49,8 +48,8 @@ def draw_circuit(pair):
         
         # Circuit Layout
         d += elm.SourceSin().label("AC")
-        d += elm.Line().right()
-        
+        d += elm.Line().right(1)
+        d += elm.Line().up(1)
         # Upper bridge
         d += (T1 := elm.Diode().label("T1").color(c1))
         d += elm.Line().right()
