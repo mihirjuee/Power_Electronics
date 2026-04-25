@@ -81,28 +81,56 @@ st.subheader("📈 Waveforms")
 
 fig, ax = plt.subplots(3, 1, figsize=(10, 7))
 
-# Input
-ax[0].plot(theta_deg, vin)
-ax[0].axvline(alpha_deg, linestyle='--', color='red')
-ax[0].axvline(180 + alpha_deg, linestyle='--', color='blue')
-ax[0].set_title("Input Voltage with Firing Angle")
+# ===== INPUT VOLTAGE =====
+ax[0].plot(theta_deg, vin, color="black")
+
+# Mark firing angles
+ax[0].axvline(alpha_deg, linestyle='--', color='red', label='T1,T2 firing')
+ax[0].axvline(180 + alpha_deg, linestyle='--', color='blue', label='T3,T4 firing')
+
+# Shade conduction regions
+ax[0].axvspan(alpha_deg, 180, color='red', alpha=0.1)
+ax[0].axvspan(180 + alpha_deg, 360, color='blue', alpha=0.1)
+
+ax[0].set_title("Input Voltage with Conduction Intervals")
 ax[0].set_ylabel("Voltage (V)")
+ax[0].legend()
 ax[0].grid()
 
-# Output Voltage
-ax[1].plot(theta_deg, vout, color='green')
-ax[1].set_title("Output Voltage")
+# ===== OUTPUT VOLTAGE =====
+vout_pos = np.maximum(vout, 0)  # remove negative part
+
+# Plot segments separately for coloring
+mask1 = (theta >= alpha) & (theta <= np.pi)
+mask2 = (theta >= np.pi + alpha) & (theta <= 2*np.pi)
+
+ax[1].plot(theta_deg[mask1], vout_pos[mask1], color='red', label='T1-T2 conduction')
+ax[1].plot(theta_deg[mask2], vout_pos[mask2], color='blue', label='T3-T4 conduction')
+
+# Shade
+ax[1].fill_between(theta_deg[mask1], vout_pos[mask1], color='red', alpha=0.2)
+ax[1].fill_between(theta_deg[mask2], vout_pos[mask2], color='blue', alpha=0.2)
+
+ax[1].set_title("Output Voltage (Rectified, Non-negative)")
 ax[1].set_ylabel("Voltage (V)")
+ax[1].legend()
 ax[1].grid()
 
-# Output Current
-ax[2].plot(theta_deg, iout, color='purple')
-ax[2].set_title("Load Current")
+# ===== CURRENT =====
+iout_pos = vout_pos / R
+
+ax[2].plot(theta_deg[mask1], iout_pos[mask1], color='red')
+ax[2].plot(theta_deg[mask2], iout_pos[mask2], color='blue')
+
+ax[2].fill_between(theta_deg[mask1], iout_pos[mask1], color='red', alpha=0.2)
+ax[2].fill_between(theta_deg[mask2], iout_pos[mask2], color='blue', alpha=0.2)
+
+ax[2].set_title("Load Current (Non-negative)")
 ax[2].set_xlabel("Angle (degrees)")
 ax[2].set_ylabel("Current (A)")
 ax[2].grid()
 
-# Axis formatting
+# ===== COMMON SETTINGS =====
 for a in ax:
     a.set_xlim(0, 360)
     a.set_xticks([0, 90, 180, 270, 360])
