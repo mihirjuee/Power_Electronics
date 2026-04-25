@@ -59,6 +59,7 @@ def draw_circuit(active_pair):
 
 # ================= ANIMATION =================
 if run:
+
     theta_all = np.linspace(0, 2*np.pi, len(t))
     theta_deg_all = np.degrees(theta_all)
 
@@ -69,20 +70,21 @@ if run:
     for i in range(len(theta_all)):
 
         theta = theta_all[i]
-        theta_deg = theta_deg_all[i]
 
-        # ================= SCR CONDUCTION =================
+        # ================= CONDUCTION =================
         if alpha <= theta <= np.pi:
             pair = "T1T2"
             color = "red"
             vout[i] = Vm * np.sin(theta)
+
         elif np.pi + alpha <= theta <= 2*np.pi:
             pair = "T3T4"
             color = "blue"
             vout[i] = Vm * np.sin(theta)
+
         else:
             pair = "NONE"
-            color = "black"
+            color = "gray"
             vout[i] = 0
 
         iout[i] = vout[i] / R
@@ -92,42 +94,32 @@ if run:
         circuit_placeholder.pyplot(fig1)
 
         # ================= WAVEFORMS =================
-        fig2, ax = plt.subplots(3, 1, figsize=(10, 7))
+        fig2, ax = plt.subplots(3, 1, figsize=(9, 6))
 
-        # -------- Input Voltage --------
-        ax[0].plot(theta_deg_all[:i+1], vin[:i+1], label="Vin")
-        ax[0].axvline(alpha_deg, linestyle='--', color="red")
-        ax[0].axvline(180 + alpha_deg, linestyle='--', color="blue")
-
-        ax[0].set_title("Input Voltage with Firing Angle")
-        ax[0].set_ylabel("Voltage (V)")
+        # Input voltage
+        ax[0].plot(theta_deg_all[:i+1], vin[:i+1])
+        ax[0].axvline(alpha_deg, linestyle='--', color='red')
+        ax[0].axvline(180 + alpha_deg, linestyle='--', color='blue')
+        ax[0].set_title("Input Voltage")
         ax[0].grid()
 
-        # Label SCR firing points
-        if abs(theta - alpha) < 0.02:
-            ax[0].text(theta_deg, 0, "T1,T2", color="red")
-        if abs(theta - (np.pi + alpha)) < 0.02:
-            ax[0].text(theta_deg, 0, "T3,T4", color="blue")
-
-        # -------- Output Voltage --------
+        # Output voltage
         ax[1].plot(theta_deg_all[:i+1], vout[:i+1], color=color)
         ax[1].set_title("Output Voltage")
-        ax[1].set_ylabel("Voltage (V)")
         ax[1].grid()
 
-        # -------- Load Current --------
+        # Current
         ax[2].plot(theta_deg_all[:i+1], iout[:i+1], color=color)
         ax[2].set_title("Load Current")
         ax[2].set_xlabel("Angle (degrees)")
-        ax[2].set_ylabel("Current (A)")
         ax[2].grid()
 
-        # Common formatting
         for a in ax:
             a.set_xlim(0, 360)
-            a.set_xticks([0, 90, 180, 270, 360])
 
         wave_placeholder.pyplot(fig2)
+
+        plt.close(fig2)  # ✅ VERY IMPORTANT (prevents crash)
 
         time.sleep(0.05)
 # ================= INFO =================
