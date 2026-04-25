@@ -62,7 +62,7 @@ def draw_circuit(pair):
         d += elm.Line().up()
         d.pop()
         d += elm.Line().down(1)
-        d += (T4 := elm.Diode().label("T4").color(c2).reverse())
+        d += (T4 := elm.SCR().label("T4").color(c2).reverse())
         
         d += elm.Line().up()
         d += elm.Line().right()
