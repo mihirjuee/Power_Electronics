@@ -49,6 +49,7 @@ def draw_circuit(pair):
         # Circuit Layout
         d += elm.SourceSin().label("AC")
         d += elm.Line().right(1)
+        d += elm.Dot()
         d.push()
         d += elm.Line().up(1)
         # Left Leg
