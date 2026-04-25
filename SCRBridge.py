@@ -70,12 +70,7 @@ def draw_circuit(pair):
         d += (T3 := elm.Diode().label("T3").color(c2))
         d += elm.Line().up()
         d += elm.Line().right()
-        
-
-        # Lower bridge
-        d += elm.Line().left()
-        
-        
+                
         # Return to source node for bottom diodes
         d.push()
         d += elm.Line().down()
