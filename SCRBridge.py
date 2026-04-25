@@ -54,6 +54,12 @@ def draw_circuit(pair):
         # Left Leg
         
         d += (T1 := elm.Diode().label("T1").color(c1))
+        # Load
+        d += (L1 := elm.Resistor().down().label("Load"))
+        d += elm.Line().down()
+        d += elm.Line().left()
+        d += elm.Line().left()
+        d += elm.Line().up()
         d.pop()
         d += elm.Line().down(1)
         d += (T4 := elm.Diode().label("T4").color(c2).reverse())
@@ -61,12 +67,7 @@ def draw_circuit(pair):
         d += elm.Line().up()
         d += elm.Line().right()
         
-        # Load
-        d += (L1 := elm.Resistor().down().label("Load"))
-        d += elm.Line().down()
-        d += elm.Line().left()
-        d += elm.Line().left()
-        d += elm.Line().up()
+
         # Lower bridge
         d += elm.Line().left()
         d += (T2 := elm.Diode().label("T2").color(c1).reverse())
