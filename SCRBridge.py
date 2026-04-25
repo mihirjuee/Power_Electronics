@@ -52,9 +52,9 @@ def draw_circuit(pair):
         d.push()
         d += elm.Line().up(1)
         # Left Leg
-        
         d += (T1 := elm.Diode().label("T1").color(c1))
         # Load
+        d += elm.Line().right()
         d += (L1 := elm.Resistor().down().label("Load"))
         d += elm.Line().down()
         d += elm.Line().left()
