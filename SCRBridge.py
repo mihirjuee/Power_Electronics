@@ -5,7 +5,35 @@ import matplotlib.pyplot as plt
 # ================= PAGE CONFIG =================
 st.set_page_config(page_title="SCR Full Converter Pro", layout="wide")
 st.title("⚡ Single-Phase Fully Controlled Bridge Converter")
+def draw_circuit(pair):
+    with schemdraw.Drawing() as d:
 
+        d += elm.SourceSin().label("AC")
+        d += elm.Line().right()
+
+        c1 = "red" if pair == "T1T2" else "black"
+        c2 = "blue" if pair == "T3T4" else "black"
+
+        # Top
+        d.push()
+        d += elm.Diode().right().label("T1").color(c1)
+        d += elm.Line().right()
+        d += elm.Resistor().down().label("Load")
+        d += elm.Line().left()
+        d += elm.Diode().left().label("T2").color(c1)
+        d.pop()
+
+        # Bottom
+        d.push()
+        d += elm.Diode().down().label("T3").color(c2)
+        d += elm.Line().down()
+        d += elm.Diode().up().label("T4").color(c2)
+        d.pop()
+
+        fig = d.draw()
+        return fig.fig
+
+st.pyplot(draw_circuit(pair))
 # ================= SIDEBAR =================
 st.sidebar.header("🔧 Simulation Parameters")
 Vm = st.sidebar.number_input("Peak Voltage (V)", value=325.0)
