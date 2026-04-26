@@ -53,7 +53,7 @@ def draw_circuit(pair):
         d += elm.Line().right(2)
         d += elm.Dot()
         d.push()
-        d += elm.Line().up(1)
+        d += elm.Line().up(0.5)
         # Left Leg
         d += (T1 := elm.SCR().label("T1").color(c1))
         # Load
