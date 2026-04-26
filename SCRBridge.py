@@ -72,7 +72,7 @@ def draw_circuit(pair):
         d.pop()
         d += elm.Dot()
         d += elm.Line().left(2)
-        d += elm.Line().down(2)
+        d += elm.Line().down(1)
         d += elm.Line().left(1)
         d.pop()
         d += elm.Line().down(1)
