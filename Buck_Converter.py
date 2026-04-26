@@ -70,7 +70,11 @@ with col1:
     d.pop()
     d += elm.Diode().down().label('D')
     d += elm.Ground()
-    st.pyplot(d.draw())
+    
+    # Fix for schemdraw/Streamlit integration
+    fig_circuit = d.draw()
+    st.pyplot(fig_circuit)
+    
     st.metric("Operating Mode", mode)
 
 with col2:
