@@ -17,16 +17,30 @@ R = st.sidebar.number_input("Load Resistance (Ω)", value=50.0)
 load_type = st.sidebar.radio("Load Type", ["Resistive (R)", "Inductive (R-L)"])
 
 # ================= CALCULATIONS =================
+import numpy as np
+
+# Parameters
 alpha = np.deg2rad(alpha_deg)
 theta = np.linspace(0, 2*np.pi, 1000)
 vin = Vm * np.sin(theta)
 
 if load_type == "Resistive (R)":
-    mask = ((theta >= alpha) & (theta <= np.pi)) | ((theta >= np.pi + alpha) & (theta <= 2*np.pi))
+    # The output follows Vin only when triggered (alpha to pi, and pi+alpha to 2pi)
+    # During the conduction period, Vout is positive.
+    mask = ((theta >= alpha) & (theta <= np.pi)) | \
+           ((theta >= np.pi + alpha) & (theta <= 2*np.pi))
     vout = np.where(mask, np.abs(vin), 0)
-    Vdc = (2 * Vm / np.pi) * np.cos(alpha)
+    
+    # Corrected formula for Resistive Load
+    Vdc = (Vm / np.pi) * (1 + np.cos(alpha))
+    
 else:
+    # Highly Inductive Load (Continuous conduction)
+    # The output follows Vin from alpha to pi+alpha
+    # Due to the inductor, the current is continuous; Vout can be negative
     vout = np.where((theta >= alpha) & (theta < np.pi + alpha), vin, -vin)
+    
+    # Formula for Inductive Load
     Vdc = (2 * Vm / np.pi) * np.cos(alpha)
 
 iout = vout / R
