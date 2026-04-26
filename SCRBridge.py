@@ -60,7 +60,7 @@ def draw_circuit(pair):
         d += elm.Line().right()
         d += elm.Line().down()
         d += (L1 := elm.Resistor().down().label("Load"))
-        d += elm.Line().down(1.6)
+        d += elm.Line().down(1.5)
         d += elm.Line().left(1)
        
         d += elm.Line().up(0.05)
