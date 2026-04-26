@@ -50,10 +50,16 @@ Vo_ss = Vo[steady:]
 IL_ss = IL[steady:]
 VL_ss = VL[steady:]
 
-Vo_avg = np.mean(Vo_ss)
-Vripple = np.max(Vo_ss) - np.min(Vo_ss)
-ripple_pct = (Vripple / Vo_avg) * 100 if Vo_avg != 0 else 0
-IL_peak = np.max(IL_ss)
+# ===== OUTPUT VOLTAGE =====
+axes[0].plot(t[steady:] * 1e6, Vo_ss, 'r', label="Vo")
+
+# Average line
+axes[0].axhline(Vo_avg, linestyle='--', label=f"Avg = {Vo_avg:.2f} V")
+
+axes[0].set_ylabel("Vo (V)")
+axes[0].set_title("Output Voltage")
+axes[0].legend()
+axes[0].grid(True)
 
 Pin = Vin * np.mean(IL_ss)
 Pout = Vo_avg**2 / R
