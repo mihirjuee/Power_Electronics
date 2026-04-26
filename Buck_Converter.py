@@ -104,16 +104,21 @@ st.subheader("📈 Steady-State Waveforms")
 
 fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
 
-axes[0].plot(t[steady:] * 1e6, Vo_ss, 'r')
+# ===== OUTPUT VOLTAGE =====
+axes[0].plot(t[steady:] * 1e6, Vo_ss, 'r', label="Vo")
+axes[0].axhline(Vo_avg, linestyle='--', label=f"Avg = {Vo_avg:.2f} V")
 axes[0].set_ylabel("Vo (V)")
 axes[0].set_title("Output Voltage")
+axes[0].legend()
 axes[0].grid(True)
 
+# ===== INDUCTOR CURRENT =====
 axes[1].plot(t[steady:] * 1e6, IL_ss, 'b')
 axes[1].set_ylabel("iL (A)")
 axes[1].set_title("Inductor Current")
 axes[1].grid(True)
 
+# ===== INDUCTOR VOLTAGE =====
 axes[2].plot(t[steady:] * 1e6, VL_ss, 'g')
 axes[2].set_ylabel("VL (V)")
 axes[2].set_xlabel("Time (µs)")
