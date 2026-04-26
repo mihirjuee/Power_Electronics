@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import schemdraw
 import schemdraw.elements as elm
+import os
 
 # ================= PAGE SETUP =================
 st.set_page_config(page_title="Buck Converter Pro", layout="wide")
@@ -27,17 +28,10 @@ Vo = np.zeros_like(t)
 VL = np.zeros_like(t)
 
 for i in range(1, len(t)):
-    # Switch state: 1 for ON, 0 for OFF
     switch = 1 if (t[i] % T) < (D * T) else 0
-    
-    # Differential Equations
     VL[i] = (switch * Vin) - Vo[i-1]
     IL[i] = IL[i-1] + (VL[i] / L) * dt
-    
-    # DCM Protection
     if IL[i] < 0: IL[i] = 0
-    
-    # Output voltage update
     IC = IL[i] - (Vo[i-1] / R)
     Vo[i] = Vo[i-1] + (IC / C) * dt
 
@@ -52,6 +46,7 @@ col1, col2 = st.columns([1, 2])
 
 with col1:
     st.subheader("Circuit Topology")
+    # Rendering as an image to avoid st.pyplot attribute errors
     d = schemdraw.Drawing()
     d += elm.SourceV().label(f'{Vin}V')
     d += elm.Line().right()
@@ -71,9 +66,8 @@ with col1:
     d += elm.Diode().down().label('D')
     d += elm.Ground()
     
-    # Fix for schemdraw/Streamlit integration
-    fig_circuit = d.draw()
-    st.pyplot(fig_circuit)
+    d.save('circuit.png')
+    st.image('circuit.png')
     
     st.metric("Operating Mode", mode)
 
