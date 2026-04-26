@@ -152,9 +152,9 @@ with col2:
         st.write("The large inductance $L$ acts as a filter, resulting in a nearly constant DC current. The voltage can be negative momentarily during commutation.")
 
     st.divider()
-    st.markdown("**Operating Principle**")
-    st.write("""
+st.markdown("**Operating Principle**")
+st.write("""
     The bridge rectifier utilizes four SCRs arranged in a bridge configuration:
-    * **Diagonal Pairs:** SCRs (1, 3) and (2, 4) fire in alternate half-cycles.
+    * **Diagonal Pairs:** SCRs (1, 2) and (3, 4) fire in alternate half-cycles.
     * **Phase Control:** By varying the firing angle $\alpha$, the average output DC voltage is precisely controlled.
     """)
