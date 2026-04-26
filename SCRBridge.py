@@ -68,7 +68,7 @@ def draw_circuit(pair):
         d.push()
         d += elm.Line().up(1.9)
         d += (T3 := elm.SCR().label("T3").color(c2))
-        d += elm.Line().up(1.28)
+        d += elm.Line().up(1)
         d.pop()
         d += elm.Dot()
         d += elm.Line().left(2)
