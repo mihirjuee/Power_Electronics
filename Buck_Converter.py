@@ -8,39 +8,40 @@ import schemdraw.elements as elm
 st.set_page_config(page_title="Buck Converter", layout="wide")
 st.title("⚡ Buck Converter (Static Simulation)")
 
-st.latex(r"V_o = D \cdot V_{in}")
+st.latex(r"V_o = D \cdot V_{in} \quad,\quad G = \frac{V_o}{V_{in}} = D")
 
 # ================= SIDEBAR =================
 st.sidebar.header("🔧 Controls")
 
-Vin = st.sidebar.number_input("Input Voltage (V)", 12.0)
+Vin = st.sidebar.number_input("Input Voltage (V)", value=12.0)
 D = st.sidebar.slider("Duty Cycle", 0.0, 1.0, 0.5)
-fs = st.sidebar.number_input("Switching Frequency (Hz)", 20000.0)
+fs = st.sidebar.number_input("Switching Frequency (Hz)", value=20000.0)
 
-R = st.sidebar.number_input("Load Resistance (Ω)", 10.0)
-L = st.sidebar.number_input("Inductance (H)", 1e-3, format="%.5f")
-C = st.sidebar.number_input("Capacitance (F)", 100e-6, format="%.6f")
+R = st.sidebar.number_input("Load Resistance (Ω)", value=10.0)
+L = st.sidebar.number_input("Inductance (H)", value=1e-3, format="%.5f")
+C = st.sidebar.number_input("Capacitance (F)", value=100e-6, format="%.6f")
 
-# ================= TIME =================
+# ================= CALCULATIONS =================
 T = 1 / fs
 t = np.linspace(0, 5*T, 2000)
 
-# ================= IDEAL OUTPUT =================
 Vo = D * Vin
 Io = Vo / R
+G = Vo / Vin if Vin != 0 else 0
 
-# ================= INDUCTOR CURRENT =================
+# Inductor ripple
 delta_IL = (Vin - Vo) * D * T / L
 
-# Triangular current waveform
+# Inductor current (triangular approx)
 IL = Io + (delta_IL/2) * np.sign(np.sin(2*np.pi*fs*t))
 
-# ================= CAPACITOR CURRENT =================
-IC = IL - Io   # capacitor current = inductor - load
+# Capacitor current
+IC = IL - Io
 
-# ================= OUTPUT VOLTAGE RIPPLE =================
+# Output voltage ripple
 delta_Vo = delta_IL / (8 * fs * C)
 
+# Real (small ripple)
 Vo_wave = Vo + (delta_Vo/2) * np.sin(2*np.pi*fs*t)
 
 # ================= CIRCUIT =================
@@ -92,6 +93,9 @@ ax[0].set_title("Output Voltage (Vo)")
 ax[0].set_ylabel("Voltage (V)")
 ax[0].grid()
 
+# Zoomed ripple view
+ax[0].set_ylim(Vo - 2*delta_Vo, Vo + 2*delta_Vo)
+
 # Inductor Current
 ax[1].plot(t*1e6, IL)
 ax[1].set_title("Inductor Current (iL)")
@@ -112,13 +116,34 @@ ax[3].set_ylabel("Current (A)")
 ax[3].grid()
 
 plt.tight_layout(h_pad=3)
-
 st.pyplot(fig)
+
+# ================= GAIN PLOT =================
+st.subheader("📈 Gain vs Duty Cycle")
+
+D_range = np.linspace(0, 1, 100)
+gain_curve = D_range
+
+fig2, ax2 = plt.subplots(figsize=(6,4))
+ax2.plot(D_range, gain_curve, label="Gain = D")
+ax2.scatter(D, G, color='red', label=f"Operating Point (D={D:.2f})")
+
+ax2.set_xlabel("Duty Cycle (D)")
+ax2.set_ylabel("Gain (Vo/Vin)")
+ax2.set_title("Buck Converter Gain")
+ax2.grid()
+ax2.legend()
+
+st.pyplot(fig2)
 
 # ================= RESULTS =================
 st.subheader("📊 Output")
 
-c1, c2, c3 = st.columns(3)
+c1, c2, c3, c4 = st.columns(4)
 c1.metric("Output Voltage", f"{Vo:.2f} V")
 c2.metric("Load Current", f"{Io:.2f} A")
-c3.metric("Inductor Ripple", f"{delta_IL:.4f} A")
+c3.metric("Voltage Gain", f"{G:.3f}")
+c4.metric("Inductor Ripple", f"{delta_IL:.4f} A")
+
+# ================= INFO =================
+st.info("Note: Output ripple is very small due to high switching frequency and capacitance. Zoom is applied for visibility.")
