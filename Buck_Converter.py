@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import schemdraw
 import schemdraw.elements as elm
 
-# ================= PAGE SETUP =================
+# ================= PAGE =================
 st.set_page_config(page_title="Buck Converter Pro", layout="wide")
 st.title("⚡ Buck Converter Analysis Tool")
 
@@ -19,7 +19,7 @@ R = st.sidebar.number_input("Load Resistance (Ω)", value=10.0)
 L = st.sidebar.number_input("Inductance (H)", value=1e-3, format="%.5f")
 C = st.sidebar.number_input("Capacitance (F)", value=100e-6, format="%.6f")
 
-# ================= SIMULATION =================
+# ================= CALCULATION =================
 T = 1 / fs
 t = np.linspace(0, 10*T, 5000)
 dt = t[1] - t[0]
@@ -33,14 +33,16 @@ Vo[0] = D * Vin
 for i in range(1, len(t)):
 
     switch = 1 if (t[i] % T) < (D * T) else 0
+
     VL[i] = (switch * Vin) - Vo[i-1]
 
     IL[i] = IL[i-1] + (VL[i] / L) * dt
 
+    # DCM condition
     if IL[i] < 0:
         IL[i] = 0
 
-    IC = IL[i] - (Vo[i-1] / R)
+    IC = IL[i] - Vo[i-1] / R
     Vo[i] = Vo[i-1] + (IC / C) * dt
 
 # ================= STEADY STATE =================
@@ -50,16 +52,11 @@ Vo_ss = Vo[steady:]
 IL_ss = IL[steady:]
 VL_ss = VL[steady:]
 
-# ===== OUTPUT VOLTAGE =====
-axes[0].plot(t[steady:] * 1e6, Vo_ss, 'r', label="Vo")
+Vo_avg = np.mean(Vo_ss)
+Vripple = np.max(Vo_ss) - np.min(Vo_ss)
+ripple_pct = (Vripple / Vo_avg) * 100 if Vo_avg != 0 else 0
 
-# Average line
-axes[0].axhline(Vo_avg, linestyle='--', label=f"Avg = {Vo_avg:.2f} V")
-
-axes[0].set_ylabel("Vo (V)")
-axes[0].set_title("Output Voltage")
-axes[0].legend()
-axes[0].grid(True)
+IL_peak = np.max(IL_ss)
 
 Pin = Vin * np.mean(IL_ss)
 Pout = Vo_avg**2 / R
@@ -67,7 +64,7 @@ eff = (Pout / Pin) * 100 if Pin != 0 else 0
 
 mode = "DCM" if np.min(IL_ss) <= 1e-3 else "CCM"
 
-# ================= CIRCUIT (TOP) =================
+# ================= CIRCUIT =================
 st.subheader("🔌 Circuit Diagram")
 
 with schemdraw.Drawing() as d:
@@ -94,43 +91,64 @@ with schemdraw.Drawing() as d:
     d += elm.Diode().down().label('D')
     d += elm.Ground()
 
-    fig = d.draw()
-    st.pyplot(fig.fig)
+    fig_circuit = d.draw().fig
 
+st.pyplot(fig_circuit)
 st.metric("Operating Mode", mode)
 
-# ================= WAVEFORMS (MIDDLE) =================
+# ================= WAVEFORMS =================
 st.subheader("📈 Steady-State Waveforms")
 
-# ✅ CREATE axes FIRST (this is what you're missing)
 fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
 
-# ===== OUTPUT VOLTAGE =====
-axes[0].plot(t[steady:] * 1e6, Vo_ss, 'r', label="Vo")
-axes[0].axhline(Vo_avg, linestyle='--', label=f"Avg = {Vo_avg:.2f} V")
+# Output Voltage
+axes[0].plot(t[steady:] * 1e6, Vo_ss, color='red', linewidth=2, label="Vo")
+axes[0].axhline(Vo_avg, linestyle='--', linewidth=1.5,
+                label=f"Avg = {Vo_avg:.2f} V")
+
+# Ripple band visualization
+axes[0].fill_between(
+    t[steady:] * 1e6,
+    Vo_avg - Vripple/2,
+    Vo_avg + Vripple/2,
+    alpha=0.2,
+    label="Ripple Band"
+)
+
 axes[0].set_ylabel("Vo (V)")
 axes[0].set_title("Output Voltage")
 axes[0].legend()
 axes[0].grid(True)
 
-# ===== INDUCTOR CURRENT =====
-axes[1].plot(t[steady:] * 1e6, IL_ss, 'b')
+# Inductor Current
+axes[1].plot(t[steady:] * 1e6, IL_ss, color='blue')
 axes[1].set_ylabel("iL (A)")
 axes[1].set_title("Inductor Current")
 axes[1].grid(True)
 
-# ===== INDUCTOR VOLTAGE =====
-axes[2].plot(t[steady:] * 1e6, VL_ss, 'g')
+# Inductor Voltage
+axes[2].plot(t[steady:] * 1e6, VL_ss, color='green')
 axes[2].set_ylabel("VL (V)")
 axes[2].set_xlabel("Time (µs)")
 axes[2].set_title("Inductor Voltage")
 axes[2].grid(True)
 
 plt.tight_layout(h_pad=3)
-
-# ✅ SHOW figure (important)
 st.pyplot(fig)
-# ================= METRICS (BOTTOM) =================
+
+# ================= RIPPLE ZOOM =================
+st.subheader("🔍 Output Voltage Ripple (Zoomed)")
+
+fig2, ax2 = plt.subplots(figsize=(8, 3))
+ax2.plot(t[steady:] * 1e6, Vo_ss)
+ax2.set_ylim(Vo_avg - 2*Vripple, Vo_avg + 2*Vripple)
+ax2.set_xlabel("Time (µs)")
+ax2.set_ylabel("Voltage (V)")
+ax2.grid(True)
+
+st.pyplot(fig2)
+
+# ================= METRICS =================
 st.subheader("📊 Key Performance Metrics")
 
 c1, c2, c3, c4 = st.columns(4)
@@ -138,11 +156,11 @@ c1, c2, c3, c4 = st.columns(4)
 c1.metric("Vo Avg", f"{Vo_avg:.2f} V")
 c2.metric("Ripple (ΔVo)", f"{Vripple:.4f} V")
 c3.metric("Ripple %", f"{ripple_pct:.2f} %")
-c4.metric("Efficiency", f"{eff:.1f} %")
+c4.metric("Efficiency", f"{eff:.2f} %")
 
 c5, c6 = st.columns(2)
 c5.metric("Inductor Peak Current", f"{IL_peak:.2f} A")
 c6.metric("Mode", mode)
 
 # ================= INFO =================
-st.info("Layout updated: Circuit → Waveforms → Metrics for better readability.")
+st.info("Ripple % = (ΔVo / Vo_avg) × 100. Ideal model (no losses).")
