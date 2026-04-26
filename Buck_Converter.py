@@ -5,10 +5,10 @@ import schemdraw
 import schemdraw.elements as elm
 
 # ================= PAGE =================
-st.set_page_config(page_title="Buck Converter", layout="wide")
-st.title("⚡ Buck Converter (Static Simulation)")
+st.set_page_config(page_title="Buck Converter Advanced", layout="wide")
+st.title("⚡ Buck Converter (Switching Simulation)")
 
-st.latex(r"V_o = D \cdot V_{in} \quad,\quad G = \frac{V_o}{V_{in}} = D")
+st.latex(r"V_o = D \cdot V_{in}")
 
 # ================= SIDEBAR =================
 st.sidebar.header("🔧 Controls")
@@ -21,28 +21,49 @@ R = st.sidebar.number_input("Load Resistance (Ω)", value=10.0)
 L = st.sidebar.number_input("Inductance (H)", value=1e-3, format="%.5f")
 C = st.sidebar.number_input("Capacitance (F)", value=100e-6, format="%.6f")
 
-# ================= CALCULATIONS =================
+# ================= TIME =================
 T = 1 / fs
-t = np.linspace(0, 5*T, 2000)
+t = np.linspace(0, 5*T, 3000)
+dt = t[1] - t[0]
 
-Vo = D * Vin
-Io = Vo / R
-G = Vo / Vin if Vin != 0 else 0
+# ================= ARRAYS =================
+IL = np.zeros_like(t)
+Vo_wave = np.zeros_like(t)
 
-# Inductor ripple
-delta_IL = (Vin - Vo) * D * T / L
+# Initial condition
+Vo_wave[0] = D * Vin
 
-# Inductor current (triangular approx)
-IL = Io + (delta_IL/2) * np.sign(np.sin(2*np.pi*fs*t))
+# ================= SWITCHING SIMULATION =================
+for i in range(1, len(t)):
 
-# Capacitor current
-IC = IL - Io
+    # PWM logic
+    if (t[i] % T) < (D * T):
+        VL = Vin - Vo_wave[i-1]   # MOSFET ON
+    else:
+        VL = -Vo_wave[i-1]        # MOSFET OFF
 
-# Output voltage ripple
-delta_Vo = delta_IL / (8 * fs * C)
+    # Inductor current update
+    IL[i] = IL[i-1] + (VL / L) * dt
 
-# Real (small ripple)
-Vo_wave = Vo + (delta_Vo/2) * np.sin(2*np.pi*fs*t)
+    # Capacitor current
+    IC = IL[i] - Vo_wave[i-1]/R
+
+    # Capacitor voltage update
+    Vo_wave[i] = Vo_wave[i-1] + (IC / C) * dt
+
+# Derived quantities
+Io_wave = Vo_wave / R
+IC_wave = IL - Io_wave
+
+# ================= RIPPLE CALCULATION =================
+# Ignore initial transient (first cycle)
+steady_start = int(0.5 * len(t))
+
+Vo_steady = Vo_wave[steady_start:]
+Vripple = np.max(Vo_steady) - np.min(Vo_steady)
+
+Vo_avg = np.mean(Vo_steady)
+Io_avg = np.mean(Io_wave[steady_start:])
 
 # ================= CIRCUIT =================
 st.subheader("🔌 Circuit Diagram")
@@ -87,29 +108,26 @@ st.subheader("📈 Waveforms")
 
 fig, ax = plt.subplots(4, 1, figsize=(10, 10), sharex=True)
 
-# Output Voltage
+# Output voltage
 ax[0].plot(t*1e6, Vo_wave)
 ax[0].set_title("Output Voltage (Vo)")
 ax[0].set_ylabel("Voltage (V)")
 ax[0].grid()
 
-# Zoomed ripple view
-ax[0].set_ylim(Vo - 2*delta_Vo, Vo + 2*delta_Vo)
-
-# Inductor Current
+# Inductor current
 ax[1].plot(t*1e6, IL)
 ax[1].set_title("Inductor Current (iL)")
 ax[1].set_ylabel("Current (A)")
 ax[1].grid()
 
-# Capacitor Current
-ax[2].plot(t*1e6, IC)
+# Capacitor current
+ax[2].plot(t*1e6, IC_wave)
 ax[2].set_title("Capacitor Current (iC)")
 ax[2].set_ylabel("Current (A)")
 ax[2].grid()
 
-# Load Current
-ax[3].plot(t*1e6, Io*np.ones_like(t))
+# Load current
+ax[3].plot(t*1e6, Io_wave)
 ax[3].set_title("Load Current (Io)")
 ax[3].set_xlabel("Time (µs)")
 ax[3].set_ylabel("Current (A)")
@@ -118,32 +136,13 @@ ax[3].grid()
 plt.tight_layout(h_pad=3)
 st.pyplot(fig)
 
-# ================= GAIN PLOT =================
-st.subheader("📈 Gain vs Duty Cycle")
-
-D_range = np.linspace(0, 1, 100)
-gain_curve = D_range
-
-fig2, ax2 = plt.subplots(figsize=(6,4))
-ax2.plot(D_range, gain_curve, label="Gain = D")
-ax2.scatter(D, G, color='red', label=f"Operating Point (D={D:.2f})")
-
-ax2.set_xlabel("Duty Cycle (D)")
-ax2.set_ylabel("Gain (Vo/Vin)")
-ax2.set_title("Buck Converter Gain")
-ax2.grid()
-ax2.legend()
-
-st.pyplot(fig2)
-
 # ================= RESULTS =================
 st.subheader("📊 Output")
 
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Output Voltage", f"{Vo:.2f} V")
-c2.metric("Load Current", f"{Io:.2f} A")
-c3.metric("Voltage Gain", f"{G:.3f}")
-c4.metric("Inductor Ripple", f"{delta_IL:.4f} A")
+c1, c2, c3 = st.columns(3)
+c1.metric("Average Output Voltage", f"{Vo_avg:.2f} V")
+c2.metric("Average Load Current", f"{Io_avg:.2f} A")
+c3.metric("Output Voltage Ripple", f"{Vripple:.4f} V")
 
 # ================= INFO =================
-st.info("Note: Output ripple is very small due to high switching frequency and capacitance. Zoom is applied for visibility.")
+st.info("This simulation uses time-domain switching equations. Initial transient is ignored for ripple calculation.")
