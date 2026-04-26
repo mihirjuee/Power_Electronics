@@ -136,5 +136,25 @@ with col1:
 
 with col2:
     st.subheader("📘 Theoretical Background")
-    st.latex(r"V_{dc} = \frac{2V_m}{\pi} \cos(\alpha)")
-    st.write("SCRs fire in diagonal pairs to rectify the AC waveform.")
+    
+    tab1, tab2 = st.tabs(["Resistive Load (R)", "Inductive Load (RL)"])
+    
+    with tab1:
+        st.markdown("**Resistive Load**")
+        st.latex(r"V_{dc} = \frac{V_m}{\pi} (1 + \cos(\alpha))")
+        st.latex(r"I_{dc} = \frac{V_{dc}}{R} = \frac{V_m}{\pi R} (1 + \cos(\alpha))")
+        st.write("The current follows the voltage waveform. Since $V_{out}$ cannot be negative, the load current is also strictly positive.")
+        
+    with tab2:
+        st.markdown("**Highly Inductive Load (Continuous)**")
+        st.latex(r"V_{dc} = \frac{2V_m}{\pi} \cos(\alpha)")
+        st.latex(r"I_{dc} = \frac{V_{dc}}{R} = \frac{2V_m}{\pi R} \cos(\alpha)")
+        st.write("The large inductance $L$ acts as a filter, resulting in a nearly constant DC current. The voltage can be negative momentarily during commutation.")
+
+    st.divider()
+    st.markdown("**Operating Principle**")
+    st.write("""
+    The bridge rectifier utilizes four SCRs arranged in a bridge configuration:
+    * **Diagonal Pairs:** SCRs (1, 3) and (2, 4) fire in alternate half-cycles.
+    * **Phase Control:** By varying the firing angle $\alpha$, the average output DC voltage is precisely controlled.
+    """)
