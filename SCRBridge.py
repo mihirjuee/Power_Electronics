@@ -156,5 +156,5 @@ st.markdown("**Operating Principle**")
 st.write("""
     The bridge rectifier utilizes four SCRs arranged in a bridge configuration:
     * **Diagonal Pairs:** SCRs (1, 2) and (3, 4) fire in alternate half-cycles.
-    * **Phase Control:** By varying the firing angle $\alpha$, the average output DC voltage is precisely controlled.
+    * **Phase Control:** By varying the firing angle st.latex(\alpha), the average output DC voltage is precisely controlled.
     """)
