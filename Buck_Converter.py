@@ -3,100 +3,62 @@ import numpy as np
 import matplotlib.pyplot as plt
 import schemdraw
 import schemdraw.elements as elm
-import time
 
 # ================= PAGE =================
-st.set_page_config(page_title="PWM Buck Converter", layout="wide")
-st.title("⚡ Buck Converter with PWM & MOSFET")
-
-st.latex(r"V_o = D \cdot V_{in}")
+st.set_page_config(page_title="Buck Converter Analysis", layout="wide")
+st.title("⚡ Buck Converter: Circuit & Waveforms")
 
 # ================= SIDEBAR =================
-st.sidebar.header("🔧 Controls")
-
+st.sidebar.header("🔧 Parameters")
 Vin = st.sidebar.number_input("Input Voltage (V)", 12.0)
 D = st.sidebar.slider("Duty Cycle", 0.0, 1.0, 0.5)
 fs = st.sidebar.number_input("Switching Frequency (Hz)", 20000.0)
-
 R = st.sidebar.number_input("Load Resistance (Ω)", 10.0)
 L = st.sidebar.number_input("Inductance (H)", 1e-3, format="%.5f")
 C = st.sidebar.number_input("Capacitance (F)", 100e-6, format="%.6f")
 
-run = st.sidebar.button("▶️ Start PWM Animation")
+# ================= CIRCUIT DIAGRAM =================
+def draw_circuit():
+    d = schemdraw.Drawing()
+    d += elm.SourceV().label(f'{Vin}V')
+    d += elm.Line().right()
+    d += elm.NFet().label("MOSFET")
+    d += elm.Line().right()
+    d.push()
+    d += elm.Inductor().label('L')
+    d += elm.Line().right()
+    d.push()
+    d += elm.Capacitor().down().label('C')
+    d += elm.Ground()
+    d.pop()
+    d += elm.Line().right()
+    d += elm.Resistor().down().label('R')
+    d += elm.Ground()
+    d.pop()
+    d += elm.Diode().down().label('D')
+    d += elm.Ground()
+    return d
 
-# ================= TIME =================
+st.subheader("Circuit Topology")
+st.write(draw_circuit()) # This renders the diagram directly in Streamlit
+
+# 
+
+# ================= CALCULATIONS & PLOTTING =================
 T = 1 / fs
-t = np.linspace(0, 5*T, 1000)
-
-# PWM signal
-pwm = (t % T) < (D * T)
-
-# ================= PLACEHOLDERS =================
-diagram_placeholder = st.empty()
-wave_placeholder = st.empty()
-
-# ================= FUNCTION: DRAW CIRCUIT =================
-def draw_circuit(state):
-    with schemdraw.Drawing() as d:
-
-        d += elm.SourceV().label('Vin')
-        d += elm.Line().right()
-
-        mos_label = "ON" if state else "OFF"
-        d += elm.NFet().label(f"MOSFET\n({mos_label})")
-
-        d += elm.Line().right()
-
-        d.push()
-
-        d += elm.Inductor().label('L')
-        d += elm.Line().right()
-        d += elm.Dot()
-
-        d.push()
-        d += elm.Capacitor().down().label('C')
-        d += elm.Ground()
-        d.pop()
-
-        d += elm.Line().right()
-        d += elm.Resistor().down().label('R')
-        d += elm.Ground()
-
-        d.pop()
-
-        d += elm.Diode().down().label('D')
-        d += elm.Ground()
-
-        fig = d.draw()
-        return fig.fig   # ✅ IMPORTANT
-
-# ================= ANIMATION =================
-if run:
-    for i in range(50):  # frames
-        idx = int(i * len(t) / 50)
-        state = pwm[idx]
-
-        # Update circuit
-        fig1 = draw_circuit(state)
-        diagram_placeholder.pyplot(fig1)
-
-        # Plot PWM waveform
-        fig2, ax = plt.subplots(figsize=(8, 3))
-        ax.plot(t[:idx]*1e6, pwm[:idx])
-        ax.set_title("PWM Gate Signal")
-        ax.set_xlabel("Time (µs)")
-        ax.set_ylim(-0.2, 1.2)
-        ax.grid()
-
-        wave_placeholder.pyplot(fig2)
-
-        time.sleep(0.1)
-
-# ================= RESULTS =================
 Vo = D * Vin
-Io = Vo / R
+IL_avg = Vo / R
+delta_IL = (Vin - Vo) * (D * T) / L
+t = np.linspace(0, T, 1000)
 
-st.subheader("📊 Output")
-c1, c2 = st.columns(2)
-c1.metric("Output Voltage", f"{Vo:.2f} V")
-c2.metric("Output Current", f"{Io:.2f} A")
+# Waveforms
+iL = np.where(t < D * T, IL_avg - delta_IL/2 + (Vin - Vo)*t/L, IL_avg + delta_IL/2 - (Vo*(t - D*T)/L))
+ic = iL - IL_avg
+vo = Vo + (delta_IL * T) / (8 * C) * np.sin(2 * np.pi * fs * t) # Simplified ripple
+
+st.subheader("Steady-State Waveforms")
+fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 8), sharex=True)
+ax1.plot(t*1e6, iL, 'b'); ax1.set_ylabel("iL (A)"); ax1.grid(True)
+ax2.plot(t*1e6, ic, 'g'); ax2.set_ylabel("iC (A)"); ax2.grid(True)
+ax3.plot(t*1e6, vo, 'r'); ax3.set_ylabel("Vo (V)"); ax3.set_xlabel("Time (µs)"); ax3.grid(True)
+st.pyplot(fig)
