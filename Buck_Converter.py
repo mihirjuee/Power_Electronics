@@ -102,6 +102,7 @@ st.metric("Operating Mode", mode)
 # ================= WAVEFORMS (MIDDLE) =================
 st.subheader("📈 Steady-State Waveforms")
 
+# ✅ CREATE axes FIRST (this is what you're missing)
 fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
 
 # ===== OUTPUT VOLTAGE =====
@@ -126,8 +127,9 @@ axes[2].set_title("Inductor Voltage")
 axes[2].grid(True)
 
 plt.tight_layout(h_pad=3)
-st.pyplot(fig)
 
+# ✅ SHOW figure (important)
+st.pyplot(fig)
 # ================= METRICS (BOTTOM) =================
 st.subheader("📊 Key Performance Metrics")
 
