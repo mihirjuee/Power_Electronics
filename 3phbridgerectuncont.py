@@ -116,18 +116,32 @@ ax.axis('off')
 st.pyplot(fig)
 
 # ================= PLOTS =================
-fig, ax = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+# ================= CALCULATIONS & PLOTS =================
+# Convert radians to degrees for plotting
+t_deg = np.rad2deg(t)
 
-ax[0].plot(t, Va, label="Va")
-ax[0].plot(t, Vb, label="Vb")
-ax[0].plot(t, Vc, label="Vc")
-ax[0].set_title("Three Phase Input Voltages")
-ax[0].legend()
+# Define Line-to-Line voltages
+Vab = Va - Vb
+Vbc = Vb - Vc
+Vca = Vc - Va
+
+fig, ax = plt.subplots(2, 1, figsize=(10, 7), sharex=True)
+
+# Top Plot: Phase Voltages + Line Voltages (faintly)
+ax[0].plot(t_deg, Va, label="Va", alpha=0.5)
+ax[0].plot(t_deg, Vb, label="Vb", alpha=0.5)
+ax[0].plot(t_deg, Vc, label="Vc", alpha=0.5)
+ax[0].plot(t_deg, Vab, label="Vab", linestyle='--', color='k', alpha=0.3)
+ax[0].set_title("Input Phase Voltages & Line Voltage Envelopes")
+ax[0].legend(loc='upper right', ncol=2)
 ax[0].grid(True)
 
-ax[1].plot(t, Vdc, color='orange')
-ax[1].set_title("Rectified Output Voltage (6-Pulse)")
+# Bottom Plot: Rectified Output Voltage
+# We highlight the portion of the line voltages that form the DC envelope
+ax[1].plot(t_deg, Vdc, color='orange', linewidth=2, label="Vdc (Output)")
+ax[1].set_title("Rectified Output Voltage (6-Pulse Envelope)")
 ax[1].grid(True)
-ax[1].set_xlabel("Electrical Angle (rad)")
+ax[1].set_xlabel("Electrical Angle (degrees)")
+ax[1].set_ylabel("Voltage (V)")
 
 st.pyplot(fig)
