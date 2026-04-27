@@ -116,47 +116,108 @@ ax.axis('off')
 st.pyplot(fig)
 
 # ================= PLOTS =================
-# ================= CALCULATIONS =================
-t_deg = np.rad2deg(t)
+# ================= CALCULATIONS (Updated for 6-Pulse Labels) =================
+# We need an array to define the active diode conduction pairs
+# Every 60 degrees (pi/3 radians), the conduction pair changes.
+# The standard sequence for a 3-phase full bridge (with standard phase indexing) is:
+# D6&D1, D1&D2, D2&D3, D3&D4, D4&D5, D5&D6.
+# Let's adjust this for the visual matching image_0.png's style (6.1, 1.2, etc.)
 
+intervals = np.arange(0, 2 * np.pi + np.pi/6, np.pi/3) # 60 degree intervals
+labels = ['6,1', '1,2', '2,3', '3,4', '4,5', '5,6', '6,1']
+line_labels = ['ab', 'ac', 'bc', 'ba', 'ca', 'cb', 'ab']
+
+# Ensure calculations section includes all combinations for line-to-line:
 Vab = Va - Vb
+Vac = Va - Vc
 Vbc = Vb - Vc
+Vba = Vb - Va
 Vca = Vc - Va
+Vcb = Vc - Vb
 
-# Output voltage
-Vdc = np.maximum.reduce([Vab, Vbc, Vca])
+# Re-calculate Vdc to follow these specific segments strictly for labelling
+Vdc_segments = np.zeros_like(t)
+# Conditions based on 60-degree intervals (starting at 30 degrees to match typical plots)
+for i in range(len(intervals) - 1):
+    # Adjust for initial 30-degree offset often used in textbook plots for symmetry
+    t_start = intervals[i] + np.pi/6
+    t_end = intervals[i+1] + np.pi/6
+    mask = (t >= t_start) & (t < t_end)
+    # The image shows "ab", "ac", etc. sequence
+    line_voltages = [Vab, Vac, Vbc, Vba, Vca, Vcb, Vab]
+    if i < len(line_voltages):
+        Vdc_segments[mask] = line_voltages[i][mask]
 
-# ================= PLOTTING =================
-fig, ax = plt.subplots(2, 1, figsize=(10, 7), sharex=True)
+# Clean up Vdc definition
+Vdc_final = Vdc_segments
 
-# -------- TOP PLOT --------
-ax[0].plot(t_deg, Va, label="Va", alpha=0.4)
-ax[0].plot(t_deg, Vb, label="Vb", alpha=0.4)
-ax[0].plot(t_deg, Vc, label="Vc", alpha=0.4)
+# ================= PLOTS =================
+st.subheader("📊 Waveform Analysis (Detailed Conduction)")
 
-# Line voltages (faint)
-ax[0].plot(t_deg, Vab, '--', alpha=0.3)
-ax[0].plot(t_deg, Vbc, '--', alpha=0.3)
-ax[0].plot(t_deg, Vca, '--', alpha=0.3)
+# Layout similar to image_0.png: Source Plot (Top), Bridge Plot (Bottom)
+fig, ax = plt.subplots(2, 1, figsize=(10, 10), sharex=True, gridspec_kw={'height_ratios': [1, 2]})
 
-# -------- ENVELOPE HIGHLIGHT --------
-mask_ab = (Vdc == Vab)
-mask_bc = (Vdc == Vbc)
-mask_ca = (Vdc == Vca)
+# --- TOP PLOT: Source (Phase-to-Neutral) ---
+ax[0].plot(t, Va, 'r-', label='an', alpha=0.7)
+ax[0].plot(t, Vb, 'g-', label='bn', alpha=0.7)
+ax[0].plot(t, Vc, 'b-', label='cn', alpha=0.7)
+ax[0].set_ylabel('Source Voltage (V)')
+ax[0].set_title('Source Phase-to-Neutral Voltages')
+ax[0].grid(True, which='both', linestyle='--', alpha=0.5)
 
-ax[0].plot(t_deg[mask_ab], Vab[mask_ab], linewidth=2, label="Active Vab")
-ax[0].plot(t_deg[mask_bc], Vbc[mask_bc], linewidth=2, label="Active Vbc")
-ax[0].plot(t_deg[mask_ca], Vca[mask_ca], linewidth=2, label="Active Vca")
+# Label phases at peaks (matching 'an', 'bn', 'cn' placement in image)
+peak_indices = [np.argmax(Va), np.argmax(Vb), np.argmax(Vc)]
+peak_labels = ['an', 'bn', 'cn']
+for idx, label in zip(peak_indices, peak_labels):
+    # Only label peaks within the main cycle
+    if 0 < t[idx] < 2*np.pi:
+        ax[0].text(t[idx], np.max(Va) + 10, label, ha='center', fontweight='bold')
 
-ax[0].set_title("Line Voltage Envelope Formation")
-ax[0].legend(ncol=2)
-ax[0].grid(True)
 
-# -------- BOTTOM PLOT --------
-ax[1].plot(t_deg, Vdc, linewidth=2, label="Vdc (Envelope)")
-ax[1].set_title("Rectified Output Voltage (6-Pulse)")
-ax[1].set_xlabel("Electrical Angle (degrees)")
-ax[1].set_ylabel("Voltage (V)")
-ax[1].grid(True)
+# --- BOTTOM PLOT: Bridge (Line-to-Line and DC Output) ---
+# 1. Light background of ALL line-to-line combinations
+line_to_line = [Vab, Vac, Vbc, Vba, Vca, Vcb]
+line_colors = ['r', 'g', 'b', 'r', 'g', 'b'] # Cyclic pattern often used
+for v, c in zip(line_to_line, line_colors):
+    ax[1].plot(t, v, color=c, alpha=0.15, linestyle=':')
 
+# 2. Highlight the specific DC Output Envelope (Vo)
+# The calculation of Vdc_final ensures it traces the top.
+# We will highlight the thick dark lines from the image.
+for i in range(len(intervals) - 1):
+    t_start = intervals[i] + np.pi/6
+    t_end = intervals[i+1] + np.pi/6
+    mask = (t >= t_start) & (t < t_end)
+    
+    # Highlight the conducting line voltage segment (thin)
+    active_line = [Vab, Vac, Vbc, Vba, Vca, Vcb, Vab][i]
+    ax[1].plot(t[mask], active_line[mask], color='k', linewidth=0.5, alpha=0.5)
+    
+    # Highlight the heavy Vdc (Vo) segments (matching the thick line in image)
+    ax[1].plot(t[mask], Vdc_final[mask], color='k', linewidth=2.5, label='_nolegend_')
+
+    # 3. Add Labels to Conduction Rectangles (Diodes + Lines)
+    # Get center point for text
+    t_mid = (t_start + t_end) / 2
+    y_pos = np.mean(Vdc_final[mask]) - 20 # Sightly below envelope
+    # Format text matching 'ab\n6,1' style
+    text_content = f"${line_labels[i]}$\n{labels[i]}"
+    ax[1].text(t_mid, y_pos, text_content, ha='center', va='top', fontweight='bold')
+
+
+# --- AXIS FORMATTING & STYLING ---
+# Shared X-axis settings
+ax[1].set_xlabel('Electrical Angle ωt')
+xticks = [0, np.pi/3, 2*np.pi/3, np.pi, 4*np.pi/3, 5*np.pi/3, 2*np.pi]
+xticklabels = ['0', r'$\pi/3$', r'$2\pi/3$', r'$\pi$', r'$4\pi/3$', r'$5\pi/3$', r'$2\pi$']
+ax[1].set_xticks(xticks)
+ax[1].set_xticklabels(xticklabels)
+ax[1].set_xlim(0, 2*np.pi)
+
+# Final grid and title for the analysis
+ax[1].grid(True, which='both', linestyle='--', alpha=0.5)
+ax[1].set_title('Detailed Rectifier Analysis (Diode Conduction and output Vo)')
+
+# Adjust spacing and display
+plt.tight_layout()
 st.pyplot(fig)
