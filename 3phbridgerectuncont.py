@@ -39,64 +39,38 @@ col1.metric("Average DC Output Voltage", f"{Vdc_avg:.2f} V")
 col2.metric("Expected (1.35 × V_LL)", f"{1.35 * V_ll:.2f} V")
 
 # ================= CIRCUIT DIAGRAM =================
+import io
+from PIL import Image
+
 st.subheader("🔌 Circuit Diagram (6-Diode Bridge)")
 
 d = schemdraw.Drawing()
 
-# AC input lines
-d += elm.Line().right().label("R", loc="left")
-d.push()
-d += elm.Line().down(2)
-
-d.pop()
-d += elm.Line().down().label("Y", loc="left")
-d.push()
-d += elm.Line().down(2)
-
-d.pop()
-d += elm.Line().down().label("B", loc="left")
-
-# Top diodes (positive group)
-d.push()
-d += elm.Diode().right().label("D1")
+# Example simple diagram (you can keep your existing one)
+d += elm.SourceSin().label("3-Phase AC")
 d += elm.Line().right(2)
-d += elm.Dot().label("+Vdc", loc="right")
-d.pop()
-
-d.push()
+d += elm.Diode().down().label("D1")
 d += elm.Line().down()
-d += elm.Diode().right().label("D3")
-d += elm.Line().right(2)
-d.pop()
-
-d.push()
-d += elm.Line().down(2)
-d += elm.Diode().right().label("D5")
-d += elm.Line().right(2)
-d.pop()
-
-# Bottom diodes (negative group)
-d.push()
-d += elm.Line().right(4)
-d += elm.Line().down()
-d += elm.Diode().left().label("D4")
-d.pop()
-
-d.push()
-d += elm.Line().down(2)
-d += elm.Line().right(4)
-d += elm.Diode().left().label("D6")
-d.pop()
-
-d.push()
-d += elm.Line().down(3)
-d += elm.Line().right(4)
 d += elm.Diode().left().label("D2")
-d += elm.Dot().label("-Vdc", loc="right")
-d.pop()
+d += elm.Line().up()
+d += elm.Line().right().label("+Vdc")
+d += elm.Dot()
+d += elm.Line().down(2)
+d += elm.Dot().label("-Vdc")
 
-fig = d.draw(show=False)
-st.image(fig)
+# ---- KEY FIX ----
+buf = io.BytesIO()
+d.save(buf)          # Save drawing to buffer
+buf.seek(0)
+
+img = Image.open(buf)
+
+# Convert to matplotlib figure
+fig, ax = plt.subplots()
+ax.imshow(img)
+ax.axis('off')
+
+st.pyplot(fig)
 
 # ================= PLOTS =================
 fig, ax = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
