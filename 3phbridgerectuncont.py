@@ -54,7 +54,7 @@ with schemdraw.Drawing() as d:
     d += (D4 := elm.Diode().at(S1.end).down().label("D4"))
     
     # Leg 2: B
-    d += (D3 := elm.Diode().at(S2.end).up().label("D3"))
+    #d += (D3 := elm.Diode().at(S2.end).up().label("D3"))
     d += (D6 := elm.Diode().at(S2.end).down().label("D6"))
     
     # Leg 3: C
