@@ -34,24 +34,32 @@ col1.metric("Average DC Output Voltage", f"{Vdc_avg:.2f} V")
 col2.metric("Expected (1.35 × V_LL)", f"{1.35 * V_ll:.2f} V")
 
 # ================= CIRCUIT DIAGRAM (FULL 6-DIODE BRIDGE) =================
-st.subheader("🔌 Full 6-Diode Bridge Circuit")
+# ================= CIRCUIT DIAGRAM (3-PHASE RECTIFIER WITH SOURCES) =================
+st.subheader("🔌 Full 3-Phase Rectifier Bridge")
 
 with schemdraw.Drawing() as d:
-    # Top Diodes (D1, D3, D5)
-    d += (D1 := elm.Diode().label("D1"))
-    d += (D3 := elm.Diode().at(D1.end).down().label("D3"))
-    d += (D5 := elm.Diode().at(D3.end).down().label("D5"))
+    # --- AC Sources ---
+    d += (S1 := elm.SourceSin().label("Va"))
+    d += (S2 := elm.SourceSin().at(S1.start).down().label("Vb"))
+    d += (S3 := elm.SourceSin().at(S2.start).down().label("Vc"))
     
-    # Bottom Diodes (D4, D6, D2)
-    d += (D4 := elm.Diode().at(D1.start).down().label("D4"))
-    d += (D6 := elm.Diode().at(D4.end).down().label("D6"))
-    d += (D2 := elm.Diode().at(D6.end).down().label("D2"))
+    # --- Bridge Legs ---
+    # Leg 1: A
+    d += (D1 := elm.Diode().at(S1.end).up().label("D1"))
+    d += (D4 := elm.Diode().at(S1.end).down().label("D4"))
     
-    # Draw connections to bridge the legs
-    d += elm.Line().at(D1.end).right().length(1)
-    d += (R := elm.Resistor().down().label("Load"))
-    d += elm.Line().at(D2.end).right().length(1)
-    d += elm.Line().at(R.end).left().to(D2.end)
+    # Leg 2: B
+    d += (D3 := elm.Diode().at(S2.end).up().label("D3"))
+    d += (D6 := elm.Diode().at(S2.end).down().label("D6"))
+    
+    # Leg 3: C
+    d += (D5 := elm.Diode().at(S3.end).up().label("D5"))
+    d += (D2 := elm.Diode().at(S3.end).down().label("D2"))
+    
+    # --- Connecting the DC Load ---
+    d += elm.Line().at(D1.end).to(D3.end).to(D5.end)
+    d += (R := elm.Resistor().at(D5.end).right().label("Load"))
+    d += elm.Line().at(D4.end).to(D6.end).to(D2.end).right().to(R.start)
 
 st.image(d.get_imagedata('png'))
 
