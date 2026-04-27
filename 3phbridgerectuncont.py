@@ -65,7 +65,7 @@ with schemdraw.Drawing() as d:
     d.pop()
     d += elm.Line().down(3)
     D2 = d.add(elm.Diode().down().label("D2"))
-    d += elm.Line().down(1)
+    d += elm.Line().down(2)
     # ================= BOTTOM DIODES =================
     D4 = d.add(elm.Diode().at(S1.end).down().label("D4"))
     d.pop()
