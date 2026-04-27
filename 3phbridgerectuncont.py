@@ -58,8 +58,10 @@ with schemdraw.Drawing() as d:
 
     # ================= BOTTOM DIODES =================
     D4 = d.add(elm.Diode().at(S1.end).down().label("D4"))
-    D6 = d.add(elm.Diode().at(S2.end).down().label("D6"))
-    D2 = d.add(elm.Diode().at(S3.end).down().label("D2"))
+    d += elm.Line().at(S2.end).right(1)
+    D6 = d.add(elm.Diode().down().label("D6"))
+    d += elm.Line().at(S3.end).right(1)
+    D2 = d.add(elm.Diode().down().label("D2"))
 
     # ================= DC BUS (TOP) =================
     d += elm.Line().at(D1.end).to(D3.end)
