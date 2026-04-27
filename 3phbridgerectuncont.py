@@ -82,7 +82,8 @@ with schemdraw.Drawing() as d:
     d += elm.Line().right(2)
     d += elm.Line().down(2)
     R = d.add(elm.Resistor().down().label("Load"))
-
+    d += elm.Line().down(2)
+    d += elm.Line().left(2)
     # ================= DC BUS (BOTTOM) =================
     d += elm.Line().at(D4.end).to(D6.end)
     d += elm.Line().to(D2.end)
