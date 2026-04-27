@@ -34,39 +34,56 @@ col1.metric("Average DC Output Voltage", f"{Vdc_avg:.2f} V")
 col2.metric("Expected (1.35 × V_LL)", f"{1.35 * V_ll:.2f} V")
 
 # ================= CIRCUIT DIAGRAM (FULL 6-DIODE BRIDGE) =================
-# ================= CIRCUIT DIAGRAM (3-PHASE RECTIFIER WITH SOURCES) =================
 st.subheader("🔌 Full 3-Phase Rectifier Bridge")
 
-with schemdraw.Drawing() as d:
-    # --- AC Sources ---
-    d += elm.Dot()
-    d.push() 
-    d += (S1 := elm.SourceSin().up().label("Vb"))
-    d += elm.Line().left()
-    d += (S1 := elm.SourceSin().up().label("Va"))
-    d.pop()
-    d += (S1 := elm.SourceSin().up().label("Vc"))
-    
-    
-    # --- Bridge Legs ---
-    # Leg 1: A
-    d += (D1 := elm.Diode().at(S1.end).up().label("D1"))
-    d += (D4 := elm.Diode().at(S1.end).down().label("D4"))
-    
-    # Leg 2: B
-    #d += (D3 := elm.Diode().at(S2.end).up().label("D3"))
-    d += (D6 := elm.Diode().at(S2.end).down().label("D6"))
-    
-    # Leg 3: C
-    d += (D5 := elm.Diode().at(S3.end).up().label("D5"))
-    d += (D2 := elm.Diode().at(S3.end).down().label("D2"))
-    
-    # --- Connecting the DC Load ---
-    d += elm.Line().at(D1.end).to(D3.end).to(D5.end)
-    d += (R := elm.Resistor().at(D5.end).right().label("Load"))
-    d += elm.Line().at(D4.end).to(D6.end).to(D2.end).right().to(R.start)
+import schemdraw
+import schemdraw.elements as elm
 
-st.image(d.get_imagedata('png'))
+with schemdraw.Drawing() as d:
+
+    # ================= AC SOURCES =================
+    S1 = d.add(elm.SourceSin().at((0, 0)).up().label("Va"))
+    S2 = d.add(elm.SourceSin().at((2, 0)).up().label("Vb"))
+    S3 = d.add(elm.SourceSin().at((4, 0)).up().label("Vc"))
+
+    # ================= TOP DIODES =================
+    D1 = d.add(elm.Diode().at(S1.end).up().label("D1"))
+    D3 = d.add(elm.Diode().at(S2.end).up().label("D3"))
+    D5 = d.add(elm.Diode().at(S3.end).up().label("D5"))
+
+    # ================= BOTTOM DIODES =================
+    D4 = d.add(elm.Diode().at(S1.end).down().label("D4"))
+    D6 = d.add(elm.Diode().at(S2.end).down().label("D6"))
+    D2 = d.add(elm.Diode().at(S3.end).down().label("D2"))
+
+    # ================= DC BUS (TOP) =================
+    d += elm.Line().at(D1.end).to(D3.end)
+    d += elm.Line().to(D5.end)
+
+    # ================= LOAD =================
+    R = d.add(elm.Resistor().right().label("Load"))
+
+    # ================= DC BUS (BOTTOM) =================
+    d += elm.Line().at(D4.end).to(D6.end)
+    d += elm.Line().to(D2.end)
+    d += elm.Line().right().to(R.start)
+
+# ===== DISPLAY FIX =====
+import io
+from PIL import Image
+import matplotlib.pyplot as plt
+
+buf = io.BytesIO()
+d.save(buf)
+buf.seek(0)
+
+img = Image.open(buf)
+
+fig, ax = plt.subplots()
+ax.imshow(img)
+ax.axis('off')
+
+st.pyplot(fig)
 
 # ================= PLOTS =================
 fig, ax = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
