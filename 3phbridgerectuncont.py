@@ -42,17 +42,19 @@ import schemdraw.elements as elm
 with schemdraw.Drawing() as d:
 
     # ================= AC SOURCES =================
-    d += elm.Line().at((0, 0)).right(2)
+    d += elm.Line().at((0, 0)).right(1)
     S1 = d.add(elm.SourceSin().right().label("Va"))
-    d += elm.Line().at((0, 2)).right(2)
+    d += elm.Line().at((0, 2)).right(1)
     S2 = d.add(elm.SourceSin().right().label("Vb"))
-    d += elm.Line().at((0, 4)).right(2)
+    d += elm.Line().at((0, 4)).right(1)
     S3 = d.add(elm.SourceSin().right().label("Vc"))
 
     # ================= TOP DIODES =================
     D1 = d.add(elm.Diode().at(S1.end).up().label("D1"))
-    D3 = d.add(elm.Diode().at(S2.end).up().label("D3"))
-    D5 = d.add(elm.Diode().at(S3.end).up().label("D5"))
+    d += elm.Line().at(S2.end).right(1)
+    D3 = d.add(elm.Diode()up().label("D3"))
+    d += elm.Line().at(S3.end).right(1)
+    D5 = d.add(elm.Diode().up().label("D5"))
 
     # ================= BOTTOM DIODES =================
     D4 = d.add(elm.Diode().at(S1.end).down().label("D4"))
