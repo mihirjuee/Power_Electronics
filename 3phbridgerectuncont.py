@@ -52,7 +52,7 @@ with schemdraw.Drawing() as d:
     d += elm.Line().right(2)
 
     # ================= TOP DIODES =================
-    d += elm.Line().at(S1.end).up(3.5)
+    d += elm.Line().at(S1.end).up(4)
     D1 = d.add(elm.Diode().up(2).label("D1"))
     d += elm.Line().at(S2.end).right(2)
     d.push()
