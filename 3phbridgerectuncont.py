@@ -95,7 +95,8 @@ d += elm.Diode().left().label("D2")
 d += elm.Dot().label("-Vdc", loc="right")
 d.pop()
 
-st.pyplot(d.draw())
+fig = d.draw(show=False)
+st.image(fig)
 
 # ================= PLOTS =================
 fig, ax = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
