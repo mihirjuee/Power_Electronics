@@ -5,7 +5,7 @@ import schemdraw
 import schemdraw.elements as elm
 
 # ================= PAGE CONFIG =================
-st.set_page_config(page_title="3-Phase Rectifier", layout="wide")
+st.set_page_config(page_title="3-Phase Rectifier", page_icon="logo.png", layout="wide")
 
 st.title("⚡ 3-Phase Uncontrolled Rectifier (6-Pulse)")
 
@@ -39,9 +39,14 @@ st.subheader("🔌 Full 3-Phase Rectifier Bridge")
 
 with schemdraw.Drawing() as d:
     # --- AC Sources ---
-    d += (S1 := elm.SourceSin().label("Va"))
-    d += (S2 := elm.SourceSin().at(S1.start).down().label("Vb"))
-    d += (S3 := elm.SourceSin().at(S2.start).down().label("Vc"))
+    d += elm.Dot()
+    d.push() 
+    d += (S1 := elm.SourceSin().up().label("Vb"))
+    d += elm.Line().left()
+    d += (S1 := elm.SourceSin().up().label("Va"))
+    d.pop()
+    d += (S1 := elm.SourceSin().up().label("Vc"))
+    
     
     # --- Bridge Legs ---
     # Leg 1: A
