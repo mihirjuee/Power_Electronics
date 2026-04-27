@@ -43,14 +43,14 @@ with schemdraw.Drawing() as d:
 
     # ================= AC SOURCES =================
     d += elm.Line().at((0, 0)).right(1)
-    S1 = d.add(elm.SourceSin().right().label("Va"))
+    S1 = d.add(elm.SourceSin().right().label("Van"))
     d += elm.Dot()
     d += elm.Line().at((0, 2)).right(1)
-    S2 = d.add(elm.SourceSin().right().label("Vb"))
+    S2 = d.add(elm.SourceSin().right().label("Vbn"))
     d += elm.Line().right(1)
     
     d += elm.Line().at((0, 4)).right(1)
-    S3 = d.add(elm.SourceSin().right().label("Vc"))
+    S3 = d.add(elm.SourceSin().right().label("Vcn"))
     d += elm.Line().right(2)
     
 
@@ -97,6 +97,7 @@ with schemdraw.Drawing() as d:
     d += elm.Line().to(D2.end)
     #d += elm.Line().right().to(R.start)
     d += elm.Line().at((0, 0)).up(4)
+    d += elm.Dot().at((0, 2)).label("n")
 # ===== DISPLAY FIX =====
 import io
 from PIL import Image
