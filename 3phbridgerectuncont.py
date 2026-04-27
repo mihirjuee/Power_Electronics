@@ -80,12 +80,13 @@ with schemdraw.Drawing() as d:
 
     # ================= LOAD =================
     d += elm.Line().right(2)
+    d += elm.Line().down(2)
     R = d.add(elm.Resistor().down().label("Load"))
 
     # ================= DC BUS (BOTTOM) =================
     d += elm.Line().at(D4.end).to(D6.end)
     d += elm.Line().to(D2.end)
-    d += elm.Line().right().to(R.start)
+    #d += elm.Line().right().to(R.start)
 
 # ===== DISPLAY FIX =====
 import io
