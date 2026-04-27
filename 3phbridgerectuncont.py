@@ -55,6 +55,7 @@ with schemdraw.Drawing() as d:
     d += elm.Line().at(S1.end).up(4.5)
     D1 = d.add(elm.Diode().up(2).label("D1"))
     d += elm.Line().up(0.5)
+    d.push()
     d += elm.Line().at(S2.end).right(2)
     d.push()
     d += elm.Line().up(2)
@@ -76,7 +77,8 @@ with schemdraw.Drawing() as d:
     
 
     # ================= DC BUS (TOP) =================
-    d += elm.Line().at(D1.end).to(D3.end)
+    d.pop()
+    d += elm.Line().right(2)
     d += elm.Line().to(D5.end)
 
     # ================= LOAD =================
