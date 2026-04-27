@@ -34,7 +34,7 @@ col1.metric("Average DC Output Voltage", f"{Vdc_avg:.2f} V")
 col2.metric("Expected (1.35 × V_LL)", f"{1.35 * V_ll:.2f} V")
 
 # ================= CIRCUIT DIAGRAM (FULL 6-DIODE BRIDGE) =================
-st.subheader("🔌 Full 3-Phase Rectifier Bridge")
+st.subheader("🔌 3-Phase Rectifier Bridge")
 
 import schemdraw
 import schemdraw.elements as elm
