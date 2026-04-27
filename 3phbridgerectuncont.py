@@ -116,32 +116,47 @@ ax.axis('off')
 st.pyplot(fig)
 
 # ================= PLOTS =================
-# ================= CALCULATIONS & PLOTS =================
-# Convert radians to degrees for plotting
+# ================= CALCULATIONS =================
 t_deg = np.rad2deg(t)
 
-# Define Line-to-Line voltages
 Vab = Va - Vb
 Vbc = Vb - Vc
 Vca = Vc - Va
 
+# Output voltage
+Vdc = np.maximum.reduce([Vab, Vbc, Vca])
+
+# ================= PLOTTING =================
 fig, ax = plt.subplots(2, 1, figsize=(10, 7), sharex=True)
 
-# Top Plot: Phase Voltages + Line Voltages (faintly)
-ax[0].plot(t_deg, Va, label="Va", alpha=0.5)
-ax[0].plot(t_deg, Vb, label="Vb", alpha=0.5)
-ax[0].plot(t_deg, Vc, label="Vc", alpha=0.5)
-ax[0].plot(t_deg, Vab, label="Vab", linestyle='--', color='k', alpha=0.3)
-ax[0].set_title("Input Phase Voltages & Line Voltage Envelopes")
-ax[0].legend(loc='upper right', ncol=2)
+# -------- TOP PLOT --------
+ax[0].plot(t_deg, Va, label="Va", alpha=0.4)
+ax[0].plot(t_deg, Vb, label="Vb", alpha=0.4)
+ax[0].plot(t_deg, Vc, label="Vc", alpha=0.4)
+
+# Line voltages (faint)
+ax[0].plot(t_deg, Vab, '--', alpha=0.3)
+ax[0].plot(t_deg, Vbc, '--', alpha=0.3)
+ax[0].plot(t_deg, Vca, '--', alpha=0.3)
+
+# -------- ENVELOPE HIGHLIGHT --------
+mask_ab = (Vdc == Vab)
+mask_bc = (Vdc == Vbc)
+mask_ca = (Vdc == Vca)
+
+ax[0].plot(t_deg[mask_ab], Vab[mask_ab], linewidth=2, label="Active Vab")
+ax[0].plot(t_deg[mask_bc], Vbc[mask_bc], linewidth=2, label="Active Vbc")
+ax[0].plot(t_deg[mask_ca], Vca[mask_ca], linewidth=2, label="Active Vca")
+
+ax[0].set_title("Line Voltage Envelope Formation")
+ax[0].legend(ncol=2)
 ax[0].grid(True)
 
-# Bottom Plot: Rectified Output Voltage
-# We highlight the portion of the line voltages that form the DC envelope
-ax[1].plot(t_deg, Vdc, color='orange', linewidth=2, label="Vdc (Output)")
-ax[1].set_title("Rectified Output Voltage (6-Pulse Envelope)")
-ax[1].grid(True)
+# -------- BOTTOM PLOT --------
+ax[1].plot(t_deg, Vdc, linewidth=2, label="Vdc (Envelope)")
+ax[1].set_title("Rectified Output Voltage (6-Pulse)")
 ax[1].set_xlabel("Electrical Angle (degrees)")
 ax[1].set_ylabel("Voltage (V)")
+ax[1].grid(True)
 
 st.pyplot(fig)
