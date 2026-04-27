@@ -97,7 +97,7 @@ with schemdraw.Drawing() as d:
     d += elm.Line().to(D2.end)
     #d += elm.Line().right().to(R.start)
     d += elm.Line().at((0, 0)).up(4)
-    d += elm.Dot().at((0, 2)).label("n")
+    d += elm.Dot().at((0, 2)).label("n", loc="left")
 # ===== DISPLAY FIX =====
 import io
 from PIL import Image
