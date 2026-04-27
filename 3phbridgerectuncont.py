@@ -44,12 +44,15 @@ with schemdraw.Drawing() as d:
     # ================= AC SOURCES =================
     d += elm.Line().at((0, 0)).right(1)
     S1 = d.add(elm.SourceSin().right().label("Va"))
+    d += elm.Dot()
     d += elm.Line().at((0, 2)).right(1)
     S2 = d.add(elm.SourceSin().right().label("Vb"))
     d += elm.Line().right(1)
+    d += elm.Dot()
     d += elm.Line().at((0, 4)).right(1)
     S3 = d.add(elm.SourceSin().right().label("Vc"))
     d += elm.Line().right(2)
+    d += elm.Dot()
 
     # ================= TOP DIODES =================
     d += elm.Line().at(S1.end).up(4.5)
