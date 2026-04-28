@@ -274,6 +274,12 @@ plt.tight_layout()
 st.pyplot(fig)
 
 # ================= METRICS =================
+# Add this BEFORE using col1, col2, col3
+
+st.subheader("📈 Performance Metrics")
+
+col1, col2, col3 = st.columns(3)
+
 col1.metric("Average DC Voltage", f"{Vdc_avg:.2f} V")
 col2.metric("Average DC Current", f"{Idc_avg:.2f} A")
 col3.metric("Output Power", f"{P_out/1000:.2f} kW")
