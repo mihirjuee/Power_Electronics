@@ -15,7 +15,7 @@ st.latex(r"V_{dc} = 1.35 \times V_{LL}")
 st.sidebar.header("🔧 Input Parameters")
 V_ll = st.sidebar.slider("Line Voltage V_LL (RMS)", 100, 500, 400)
 f = st.sidebar.slider("Frequency (Hz)", 25, 60, 50)
-
+R_load = st.sidebar.slider("Load Resistance (Ohms)", 10, 500, 100)
 # ================= CALCULATIONS =================
 Vm = np.sqrt(2) * (V_ll / np.sqrt(3))
 t = np.linspace(0, 2*np.pi, 1000)
@@ -89,7 +89,7 @@ with schemdraw.Drawing() as d:
     # ================= LOAD =================
     d += elm.Line().right(2)
     d += elm.Line().down(3.5)
-    R = d.add(elm.Resistor().down().label("Load"))
+    R = d.add(elm.Resistor().down().label(f"R={R_load}$\Omega$"))
     d += elm.Line().down(3.5)
     d += elm.Line().left(2)
     # ================= DC BUS (BOTTOM) =================
