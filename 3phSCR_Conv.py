@@ -18,7 +18,7 @@ import io
 from PIL import Image
 
 # ================= PAGE =================
-st.set_page_config(page_title="3-Phase Controlled Rectifier", layout="wide")
+st.set_page_config(page_title="3-Phase Controlled Rectifier",page_icon="logo.png", layout="wide")
 st.title("⚡ 3-Phase Fully Controlled Rectifier (6-SCR Converter)")
 
 # ================= SIDEBAR =================
