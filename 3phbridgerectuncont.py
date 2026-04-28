@@ -34,7 +34,7 @@ Vdc_avg = np.mean(Vdc)
 #col2.metric("Expected (1.35 × V_LL)", f"{1.35 * V_ll:.2f} V")
 
 # ================= CIRCUIT DIAGRAM (FULL 6-DIODE BRIDGE) =================
-#st.subheader("🔌 3-Phase Rectifier Bridge")
+st.subheader("🔌 Circuit Diagram")
 
 import schemdraw
 import schemdraw.elements as elm
