@@ -172,15 +172,15 @@ with schemdraw.Drawing() as d:
     # ================= LOAD =================
     d += elm.Line().right(2)
     d += elm.Line().down(3.5)
-if load_type == "R Load":
-    R = d.add(elm.Resistor().down().label(f"R={R_load:.1f}Ω"))
-    d += elm.Line().down(3.5)
-    d += elm.Line().left(2)
-else:
-    R = d.add(elm.Resistor().down().label(f"R={R_load:.1f}Ω"))
-    d += elm.Inductor().down().label(f"L={L_load:.3f}H")
-    d += elm.Line().down(0.5)
-    d += elm.Line().left(2)
+    if load_type == "R Load":
+        R = d.add(elm.Resistor().down().label(f"R={R_load:.1f}Ω"))
+        d += elm.Line().down(3.5)
+        d += elm.Line().left(2)
+    else:
+        R = d.add(elm.Resistor().down().label(f"R={R_load:.1f}Ω"))
+        d += elm.Inductor().down().label(f"L={L_load:.3f}H")
+        d += elm.Line().down(0.5)
+        d += elm.Line().left(2)
     # ================= DC BUS (BOTTOM) =================
     d += elm.Line().at(D4.end).to(D6.end)
     d += elm.Line().to(D2.end)
