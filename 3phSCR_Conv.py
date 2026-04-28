@@ -81,39 +81,90 @@ Idc_avg = Vdc_avg / R_load
 P_out = Vdc_avg * Idc_avg
 
 # ================= CIRCUIT DIAGRAM =================
-st.subheader("🔌 Circuit Diagram (6-SCR Bridge)")
+st.subheader("🔌 Circuit Diagram")
+
+import schemdraw
+import schemdraw.elements as elm
 
 with schemdraw.Drawing() as d:
 
-    # AC Sources
-    d += elm.SourceSin().label("Van")
+    # ================= AC SOURCES =================
+    d += elm.Line().at((0, 0)).right(1)
+    S1 = d.add(elm.SourceSin().right().label("Van"))
+    d += elm.Dot()
+    d += elm.Line().at((0, 2)).right(1)
+    S2 = d.add(elm.SourceSin().right().label("Vbn"))
+    d += elm.Line().right(1)
+    
+    d += elm.Line().at((0, 4)).right(1)
+    S3 = d.add(elm.SourceSin().right().label("Vcn"))
+    d += elm.Line().right(2)
+    
+
+    # ================= TOP DIODES =================
+    d += elm.Line().at(S1.end).up(4.5)
+    D1 = d.add(elm.Diode().up(2).label("T1"))
+    d += elm.Line().up(0.5)
+    d.push()
+    d += elm.Line().at(S2.end).right(2)
+    d.push()
+    d += elm.Dot()
     d += elm.Line().up(2)
+    D3 = d.add(elm.Diode().up().label("T3"))
+    #d += elm.Line().up(0.25)
+    d += elm.Line().at(S3.end).right(3.5)
+    d.push()
+    d += elm.Dot()
+    D5 = d.add(elm.Diode().up().label("T5"))
+    d.pop()
+    d += elm.Line().down(4)
+    D2 = d.add(elm.Diode().down().reverse().label("T2"))
+    #d += elm.Line().down(0.5)
+    # ================= BOTTOM DIODES =================
+    D4 = d.add(elm.Diode().at(S1.end).down().reverse().label("T4"))
+    d.pop()
+    d += elm.Line().down(2)
+    D6 = d.add(elm.Diode().down().reverse().label("T6"))
+    d += elm.Line().at(S3.end).right(1)
+    
 
-    d += elm.SourceSin().at((0, -3)).label("Vbn")
-    d += elm.Line().up(2)
+    # ================= DC BUS (TOP) =================
+    d.pop()
+    d += elm.Line().right(2)
+    d += elm.Line().to(D5.end)
 
-    d += elm.SourceSin().at((0, -6)).label("Vcn")
+    # ================= LOAD =================
+    d += elm.Line().right(2)
+    d += elm.Line().down(3.5)
+    R = d.add(elm.Resistor().down().label(f"R={R_load}$\Omega$"))
+    d += elm.Line().down(3.5)
+    d += elm.Line().left(2)
+    # ================= DC BUS (BOTTOM) =================
+    d += elm.Line().at(D4.end).to(D6.end)
+    d += elm.Line().to(D2.end)
+    #d += elm.Line().right().to(R.start)
+    d += elm.Line().at((0, 0)).up(4)
+    d += elm.Dot().at((0, 2)).label("n", loc="left")
+# ===== DISPLAY FIX =====
+import io
+from PIL import Image
+import matplotlib.pyplot as plt
 
-    # Top SCRs
-    d += elm.SCR().at((3, 1)).up().label("T1")
-    d += elm.SCR().at((5, -2)).up().label("T3")
-    d += elm.SCR().at((7, -5)).up().label("T5")
-
-    # Bottom SCRs
-    d += elm.SCR().at((3, -1)).down().reverse().label("T4")
-    d += elm.SCR().at((5, -4)).down().reverse().label("T6")
-    d += elm.SCR().at((7, -7)).down().reverse().label("T2")
-
-# Display
 buf = io.BytesIO()
 d.save(buf)
 buf.seek(0)
+
 img = Image.open(buf)
 
-fig_diag, ax_diag = plt.subplots(figsize=(8, 5))
-ax_diag.imshow(img)
-ax_diag.axis("off")
-st.pyplot(fig_diag)
+fig, ax = plt.subplots()
+ax.imshow(img)
+ax.axis('off')
+
+st.pyplot(fig)
+
+
+
+
 
 # ================= WAVEFORMS =================
 st.subheader("📊 Waveform Analysis")
