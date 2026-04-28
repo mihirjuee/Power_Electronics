@@ -172,7 +172,7 @@ with schemdraw.Drawing() as d:
     # ================= LOAD =================
     d += elm.Line().right(2)
     d += elm.Line().down(3.5)
-    if load_type == "R Load":
+if load_type == "R Load":
     R = d.add(elm.Resistor().down().label(f"R={R_load:.1f}Ω"))
     d += elm.Line().down(3.5)
     d += elm.Line().left(2)
