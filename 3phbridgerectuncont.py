@@ -149,8 +149,10 @@ for i in range(len(intervals) - 1):
         Vdc_segments[mask] = line_voltages[i][mask]
 
 # Clean up Vdc definition
+Vdc_avg = 1.35 * V_ll
 Vdc_final = Vdc_segments
-
+Idc_avg = Vdc_avg / R_load
+P_dc = Vdc_avg * Idc_avg
 # ================= PLOTS =================
 st.subheader("📊 Waveform Analysis (Detailed Conduction)")
 
@@ -221,3 +223,15 @@ ax[1].set_title('Detailed Rectifier Analysis (Diode Conduction and output Vo)')
 # Adjust spacing and display
 plt.tight_layout()
 st.pyplot(fig)
+
+# ================= METRICS & FORMULAS =================
+st.subheader("📊 Performance Metrics")
+col1, col2, col3 = st.columns(3)
+col1.metric("Avg DC Voltage", f"{Vdc_avg:.2f} V")
+col2.metric("Avg DC Current", f"{Idc_avg:.2f} A")
+col3.metric("Output Power", f"{P_dc/1000:.2f} kW")
+
+st.markdown("---")
+st.subheader("📜 Key Formulas")
+st.latex(r"V_{dc(avg)} = \frac{3\sqrt{6}}{\pi} V_{phase(rms)} = 1.35 \times V_{LL}")
+st.latex(r"I_{dc} = \frac{V_{dc}}{R}, \quad P_{out} = V_{dc} \times I_{dc}")
