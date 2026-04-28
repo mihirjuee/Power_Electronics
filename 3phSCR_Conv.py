@@ -28,6 +28,16 @@ f = st.sidebar.slider("Frequency (Hz)", 25, 60, 50)
 R_load = st.sidebar.slider("Load Resistance (Ω)", 10, 500, 100)
 alpha_deg = st.sidebar.slider("Firing Angle α (degrees)", 0, 150, 30)
 
+# ================= SIDEBAR LOAD TYPE =================
+load_type = st.sidebar.radio("Load Type", ["R Load", "RL Load"])
+
+# For R Load
+R_load = st.sidebar.slider("Load Resistance (Ω)", 1.0, 500.0, 100.0)
+
+# For RL Load
+if load_type == "RL Load":
+    L_load = st.sidebar.slider("Load Inductance (H)", 0.001, 1.0, 0.05)
+
 # ================= BASIC CALCULATIONS =================
 alpha = np.radians(alpha_deg)
 
@@ -66,7 +76,7 @@ for i in range(6):
     if i < len(line_voltages):
         Vdc[mask] = line_voltages[i][mask]
 
-# Wrap around for continuity
+# Wrap around continuity
 for i in range(6):
     t_start = start_angle + i * interval - 2*np.pi
     t_end = t_start + interval
@@ -75,9 +85,35 @@ for i in range(6):
     if i < len(line_voltages):
         Vdc[mask] = line_voltages[i][mask]
 
-# Average DC
-Vdc_avg = 1.35 * V_ll * np.cos(alpha)
-Idc_avg = Vdc_avg / R_load
+# ================= LOAD CURRENT CALCULATIONS =================
+if load_type == "R Load":
+    # Pure resistive current
+    Idc = Vdc / R_load
+
+    Vdc_avg = np.mean(Vdc)
+    Idc_avg = np.mean(Idc)
+
+else:
+    # ================= RL LOAD =================
+    # Simulate current using:
+    # V = Ri + L(di/dt)
+
+    omega = 2 * np.pi * f
+    dt = (t[1] - t[0]) / omega
+
+    Idc = np.zeros_like(t)
+
+    for n in range(1, len(t)):
+        di_dt = (Vdc[n-1] - R_load * Idc[n-1]) / L_load
+        Idc[n] = Idc[n-1] + di_dt * dt
+
+    # Prevent unrealistic negative current
+    Idc = np.maximum(Idc, 0)
+
+    Vdc_avg = np.mean(Vdc)
+    Idc_avg = np.mean(Idc)
+
+# ================= POWER =================
 P_out = Vdc_avg * Idc_avg
 
 # ================= CIRCUIT DIAGRAM =================
@@ -136,7 +172,13 @@ with schemdraw.Drawing() as d:
     # ================= LOAD =================
     d += elm.Line().right(2)
     d += elm.Line().down(3.5)
-    R = d.add(elm.Resistor().down().label(f"R={R_load}$\Omega$"))
+    if load_type == "R Load":
+    R = d.add(elm.Resistor().down().label(f"R={R_load:.1f}Ω"))
+    d += elm.Line().down(3.5)
+    d += elm.Line().left(2)
+else:
+    R = d.add(elm.Resistor().down().label(f"R={R_load:.1f}Ω"))
+    d += elm.Inductor().down().label(f"L={L_load:.3f}H")
     d += elm.Line().down(3.5)
     d += elm.Line().left(2)
     # ================= DC BUS (BOTTOM) =================
@@ -163,13 +205,13 @@ ax.axis('off')
 st.pyplot(fig)
 
 
+# ================= WAVEFORM PLOTS =================
+# Replace existing figure block with this upgraded one
 
-
-
-# ================= WAVEFORMS =================
-st.subheader("📊 Waveform Analysis")
-
-fig, ax = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
+if load_type == "R Load":
+    fig, ax = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
+else:
+    fig, ax = plt.subplots(3, 1, figsize=(12, 12), sharex=True)
 
 # -------- TOP: Source Voltages --------
 ax[0].plot(t, Va, label='Va', color='r')
@@ -181,9 +223,9 @@ ax[0].set_ylabel("Voltage (V)")
 ax[0].grid(True, linestyle='--', alpha=0.5)
 ax[0].legend()
 
-# -------- BOTTOM: Controlled Output --------
+# -------- OUTPUT VOLTAGE --------
 for lv in line_voltages:
-    ax[1].plot(t, lv, linestyle=':', alpha=0.2, color='gray')
+    ax[1].plot(t, lv, linestyle=':', alpha=0.15, color='gray')
 
 ax[1].plot(t, Vdc, color='black', linewidth=2.5, label='Controlled Vdc')
 
@@ -193,60 +235,73 @@ for i in range(6):
     if fire_angle <= 2*np.pi:
         ax[1].axvline(fire_angle, color='red', linestyle='--', alpha=0.7)
 
-        # Label
         idx = np.argmin(np.abs(t - fire_angle))
+
         ax[1].text(
             fire_angle,
-            Vdc[idx] - 30,
+            Vdc[idx] - 25,
             f"{line_labels[i]}\n{scr_labels[i]}",
             ha='center',
-            fontsize=9,
+            fontsize=8,
             fontweight='bold'
         )
 
-ax[1].set_title(f"Controlled Output Voltage (α = {alpha_deg}°)")
+ax[1].set_title(f"Controlled Output Voltage ({load_type}, α={alpha_deg}°)")
 ax[1].set_ylabel("Vdc (V)")
-ax[1].set_xlabel("Electrical Angle ωt")
+ax[1].grid(True, linestyle='--', alpha=0.5)
+ax[1].legend()
+
+# -------- CURRENT PLOT --------
+if load_type == "RL Load":
+    ax[2].plot(t, Idc, color='purple', linewidth=2.5, label='Load Current iL')
+    ax[2].set_title("RL Load Current")
+    ax[2].set_ylabel("Current (A)")
+    ax[2].grid(True, linestyle='--', alpha=0.5)
+    ax[2].legend()
+
+# ================= X AXIS =================
+target_ax = ax[-1]
+
+target_ax.set_xlabel("Electrical Angle ωt")
 
 xticks = [0, np.pi/3, 2*np.pi/3, np.pi, 4*np.pi/3, 5*np.pi/3, 2*np.pi]
 xticklabels = ['0', 'π/3', '2π/3', 'π', '4π/3', '5π/3', '2π']
-ax[1].set_xticks(xticks)
-ax[1].set_xticklabels(xticklabels)
 
-ax[1].grid(True, linestyle='--', alpha=0.5)
-ax[1].legend()
+target_ax.set_xticks(xticks)
+target_ax.set_xticklabels(xticklabels)
 
 plt.tight_layout()
 st.pyplot(fig)
 
 # ================= METRICS =================
-st.subheader("📈 Performance Metrics")
-col1, col2, col3 = st.columns(3)
-
 col1.metric("Average DC Voltage", f"{Vdc_avg:.2f} V")
 col2.metric("Average DC Current", f"{Idc_avg:.2f} A")
 col3.metric("Output Power", f"{P_out/1000:.2f} kW")
 
-# ================= MODE =================
-if alpha_deg < 90:
-    st.success("⚡ Rectifier Mode (Positive Average Output)")
-elif alpha_deg == 90:
-    st.warning("⚠ Boundary Mode (Vdc ≈ 0)")
-else:
-    st.error("🔋 Inverter Region (Negative Average Output possible with active load)")
-
-# ================= FORMULAS =================
-st.markdown("---")
+# ================= EQUATIONS =================
 st.subheader("📜 Key Equations")
 
-st.latex(r"V_{dc(avg)} = 1.35 \times V_{LL} \cos(\alpha)")
-st.latex(r"I_{dc(avg)} = \frac{V_{dc}}{R}")
-st.latex(r"P_{out} = V_{dc} \cdot I_{dc}")
+if load_type == "R Load":
+    st.latex(r"I_{dc}(t)=\frac{V_{dc}(t)}{R}")
+else:
+    st.latex(r"V_{dc}(t)=Ri(t)+L\frac{di(t)}{dt}")
 
-st.info("""
-📘 Notes:
-• α = 0° → behaves like diode rectifier  
-• α < 90° → rectification mode  
-• α > 90° → inverter mode possible (with suitable DC source/load)  
-• Each SCR pair conducts for 60°
+st.latex(r"V_{dc(avg)} = 1.35V_{LL}\cos(\alpha)")
+
+# ================= LOAD INSIGHT =================
+if load_type == "RL Load":
+    st.info("""
+📘 RL Load Effects:
+• Inductor smooths current ripple  
+• Current becomes more continuous  
+• Current lags voltage  
+• More realistic for DC motor armature loads  
+""")
+else:
+    st.info("""
+📘 R Load Effects:
+• Current follows voltage instantly  
+• Higher ripple  
+• Simpler waveform  
+• Used for basic rectifier study  
 """)
