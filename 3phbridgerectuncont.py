@@ -9,7 +9,7 @@ st.set_page_config(page_title="3-Phase Rectifier", page_icon="logo.png", layout=
 
 st.title("⚡ 3-Phase Uncontrolled Rectifier (6-Pulse)")
 
-st.latex(r"V_{dc} = 1.35 \times V_{LL}")
+#st.latex(r"V_{dc} = 1.35 \times V_{LL}")
 
 # ================= SIDEBAR =================
 st.sidebar.header("🔧 Input Parameters")
@@ -29,9 +29,9 @@ Vdc = np.maximum.reduce([Va-Vb, Va-Vc, Vb-Va, Vb-Vc, Vc-Va, Vc-Vb])
 Vdc_avg = np.mean(Vdc)
 
 # ================= METRICS =================
-col1, col2 = st.columns(2)
-col1.metric("Average DC Output Voltage", f"{Vdc_avg:.2f} V")
-col2.metric("Expected (1.35 × V_LL)", f"{1.35 * V_ll:.2f} V")
+#col1, col2 = st.columns(2)
+#col1.metric("Average DC Output Voltage", f"{Vdc_avg:.2f} V")
+#col2.metric("Expected (1.35 × V_LL)", f"{1.35 * V_ll:.2f} V")
 
 # ================= CIRCUIT DIAGRAM (FULL 6-DIODE BRIDGE) =================
 st.subheader("🔌 3-Phase Rectifier Bridge")
