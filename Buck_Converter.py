@@ -15,8 +15,8 @@ Vin = st.sidebar.number_input("Input Voltage (V)", value=12.0)
 D = st.sidebar.slider("Duty Cycle", 0.0, 1.0, 0.5)
 fs = st.sidebar.number_input("Switching Frequency (Hz)", value=20000.0)
 
-R = st.sidebar.number_input("Load Resistance (Ω)", value=10.0)
-L = st.sidebar.number_input("Inductance (H)", value=1e-3, format="%.5f")
+R = st.sidebar.number_input("Load Resistance (Ω)", value=20.0)
+L = st.sidebar.number_input("Inductance (H)", value=400e-6, format="%.5f")
 C = st.sidebar.number_input("Capacitance (F)", value=100e-6, format="%.6f")
 
 # ================= CALCULATION =================
