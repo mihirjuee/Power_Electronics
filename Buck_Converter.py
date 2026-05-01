@@ -72,7 +72,7 @@ with schemdraw.Drawing() as d:
     d += elm.Line().right(0.5)
     d += elm.Line().up(0.01)
     d += elm.NFet().label("MOSFET")
-    d += elm.Line().right()
+    d += elm.Line().right(1)
 
     d.push()
     d += elm.Inductor().label('L')
