@@ -69,8 +69,8 @@ st.subheader("🔌 Circuit Diagram")
 
 with schemdraw.Drawing() as d:
     d += elm.SourceV().label(f'{Vin} V')
-    d += elm.Line().right()
-    d += elm.Line().up(0.1)
+    d += elm.Line().right(0.5)
+    d += elm.Line().up(0.01)
     d += elm.NFet().label("MOSFET")
     d += elm.Line().right()
 
