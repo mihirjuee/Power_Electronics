@@ -161,6 +161,86 @@ c4.metric("Efficiency", f"{eff:.2f} %")
 c5, c6 = st.columns(2)
 c5.metric("Inductor Peak Current", f"{IL_peak:.2f} A")
 c6.metric("Mode", mode)
+# ================= KEY FORMULAS SECTION =================
+# ADD THIS near the bottom of your Buck Converter app
+# (Place before st.info or footer)
 
+st.subheader("📐 Key Buck Converter Formulas")
+
+colf1, colf2 = st.columns(2)
+
+with colf1:
+    st.latex(r"V_o = D \times V_{in}")
+    st.caption("Ideal Output Voltage")
+
+    st.latex(r"I_o = \frac{V_o}{R}")
+    st.caption("Load Current")
+
+    st.latex(r"I_{in} = D \times I_o")
+    st.caption("Average Input Current (Ideal)")
+
+    st.latex(r"T = \frac{1}{f_s}")
+    st.caption("Switching Time Period")
+
+with colf2:
+    st.latex(r"\Delta I_L = \frac{(V_{in}-V_o)D}{L f_s}")
+    st.caption("Inductor Current Ripple")
+
+    st.latex(r"\Delta V_o = \frac{\Delta I_L}{8 C f_s}")
+    st.caption("Output Voltage Ripple Approximation")
+
+    st.latex(r"\%Ripple = \frac{\Delta V_o}{V_o}\times100")
+    st.caption("Ripple Percentage")
+
+    st.latex(r"\eta = \frac{P_{out}}{P_{in}}\times100")
+    st.caption("Efficiency")
+
+# ================= CCM / DCM BOUNDARY =================
+st.subheader("⚙️ CCM / DCM Boundary")
+
+# Critical inductance for buck converter
+L_critical = ((1 - D) * R) / (2 * fs)
+
+colm1, colm2, colm3 = st.columns(3)
+
+colm1.metric("Critical Inductance", f"{L_critical:.8f} H")
+colm2.metric("Current Mode", mode)
+colm3.metric(
+    "Condition",
+    "CCM" if L > L_critical else "DCM"
+)
+
+# ================= DESIGN INSIGHT =================
+with st.expander("🧠 Formula Insights"):
+    st.markdown("""
+    ### Important Design Relationships:
+
+    **Higher Duty Cycle (D ↑):**
+    - Output voltage increases linearly
+    - Load current increases
+    - Power delivery increases
+
+    **Higher Inductance (L ↑):**
+    - Lower inductor ripple current
+    - Better CCM operation
+    - Smoother current waveform
+    - Slower dynamic response
+
+    **Higher Capacitance (C ↑):**
+    - Lower output voltage ripple
+    - Better voltage regulation
+    - Improved filtering
+
+    **Higher Switching Frequency (fs ↑):**
+    - Smaller required L and C
+    - Lower ripple
+    - Faster response
+    - Higher practical switching losses
+
+    ### Quick Rule:
+    **Buck Converter = Step-Down Converter**
+    Output voltage is always ideally lower than input:
+    Vo < Vin (for D < 1)
+    """)
 # ================= INFO =================
 st.info("Ripple % = (ΔVo / Vo_avg) × 100. Ideal model (no losses).")
