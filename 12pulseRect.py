@@ -1,6 +1,6 @@
 # ============================================================
 # 12-PULSE CONTROLLED RECTIFIER SIMULATOR (STREAMLIT)
-# FINAL STABLE VERSION
+# FINAL STABLE & OPTIMIZED VERSION
 # ============================================================
 
 import streamlit as st
@@ -29,101 +29,91 @@ R_load = st.sidebar.slider("Load Resistance (Ω)", 1, 200, 10)
 alpha_rad = np.radians(alpha_deg)
 
 # ------------------------------------------------------------
-# CALCULATION ENGINE
+# CALCULATION ENGINE (VECTORIZED)
 # ------------------------------------------------------------
 Vm_phase = (V_ll_rms / np.sqrt(3)) * np.sqrt(2)
 omega = 2 * np.pi * f
+t = np.linspace(0, 2/f, 3000)
 
-# Time base for 2 cycles
-t = np.linspace(0, 2/f, 2000)
-
-def get_6pulse_output(V_phase_max, ang_freq, time, alpha, phase_shift_deg=0):
-    """Calculates the output of a 3-phase bridge rectifier."""
-    shift = np.radians(phase_shift_deg)
+def get_6pulse_output(V_p_max, ang_freq, time, alpha, shift_deg=0):
+    shift = np.radians(shift_deg)
     
     # Phase Voltages
-    Va = V_phase_max * np.sin(ang_freq * time + shift)
-    Vb = V_phase_max * np.sin(ang_freq * time - 2*np.pi/3 + shift)
-    Vc = V_phase_max * np.sin(ang_freq * time - 4*np.pi/3 + shift)
+    Va = V_p_max * np.sin(ang_freq * time + shift)
+    Vb = V_p_max * np.sin(ang_freq * time - 2*np.pi/3 + shift)
+    Vc = V_p_max * np.sin(ang_freq * time - 4*np.pi/3 + shift)
     
-    # Line-to-Line Voltages
-    Vab = Va - Vb
-    Vac = Va - Vc
-    Vbc = Vb - Vc
-    Vba = Vb - Va
-    Vca = Vc - Va
-    Vcb = Vc - Vb
+    # Line Voltages
+    v_line = {
+        0: Va - Vb, # Vab
+        1: Va - Vc, # Vac
+        2: Vb - Vc, # Vbc
+        3: Vb - Va, # Vba
+        4: Vc - Va, # Vca
+        5: Vc - Vb  # Vcb
+    }
     
-    v_out = np.zeros_like(time)
+    # Logic: Identify which 60-degree sector we are in based on alpha
+    # Natural commutation for Vab starts at 30 deg (pi/6)
+    theta = (ang_freq * time + shift - alpha - np.pi/6) % (2 * np.pi)
+    sector = (theta // (np.pi / 3)).astype(int) % 6
     
-    for i, t_val in enumerate(time):
-        # Electrical angle relative to natural commutation point (30 degrees)
-        theta = (ang_freq * t_val + shift) % (2 * np.pi)
-        
-        # Adjusting theta to align with the first commutation pulse
-        # In a 3-phase bridge, natural commutation starts at 30 degrees (pi/6)
-        phi = (theta - alpha - np.pi/6) % (2 * np.pi)
-        sector = int(phi // (np.pi / 3))
-        
-        if sector == 0: v_out[i] = Vab[i]
-        elif sector == 1: v_out[i] = Vac[i]
-        elif sector == 2: v_out[i] = Vbc[i]
-        elif sector == 3: v_out[i] = Vba[i]
-        elif sector == 4: v_out[i] = Vca[i]
-        else: v_out[i] = Vcb[i]
-            
+    # Vectorized selection
+    v_out = np.choose(sector, [v_line[i] for i in range(6)])
     return np.abs(v_out)
 
-# Bridge 1 (Y-Y: 0° shift)
+# Generate bridge outputs
 Vdc1 = get_6pulse_output(Vm_phase, omega, t, alpha_rad, 0)
-# Bridge 2 (Y-Δ: 30° shift)
 Vdc2 = get_6pulse_output(Vm_phase, omega, t, alpha_rad, 30)
-
-# Total 12-Pulse Output (Average of series/parallel bridges)
 Vdc_total = (Vdc1 + Vdc2) / 2
 
 # ------------------------------------------------------------
-# METRICS & PERFORMANCE
+# PERFORMANCE METRICS
 # ------------------------------------------------------------
 v_avg = np.mean(Vdc_total)
 i_avg = v_avg / R_load
 v_rms = np.sqrt(np.mean(Vdc_total**2))
-ripple_factor = np.sqrt((v_rms/v_avg)**2 - 1) if v_avg > 0 else 0
+ripple_factor = np.sqrt(abs((v_rms/v_avg)**2 - 1)) if v_avg > 0 else 0
 
-# Comparison to 6-pulse
 v_avg_6 = np.mean(Vdc1)
 v_rms_6 = np.sqrt(np.mean(Vdc1**2))
-rf_6 = np.sqrt((v_rms_6/v_avg_6)**2 - 1)
+rf_6 = np.sqrt(abs((v_rms_6/v_avg_6)**2 - 1))
 
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Avg DC Voltage", f"{v_avg:.2f} V")
 col2.metric("Load Current", f"{i_avg:.2f} A")
 col3.metric("Ripple Factor (12-P)", f"{ripple_factor:.4f}")
-col4.metric("Ripple Improvement", f"{((rf_6 - ripple_factor)/rf_6)*100:.1f}%")
+col4.metric("Ripple Improvement", f"{((rf_6 - ripple_factor)/rf_6)*100:.1f}%" if rf_6 > 0 else "0%")
 
 # ------------------------------------------------------------
-# CIRCUIT DIAGRAM (MATPLOTLIB)
+# CIRCUIT DIAGRAM (FIXED BBOX ERROR)
 # ------------------------------------------------------------
 st.subheader("🔌 System Architecture")
 fig_ckt, ax_c = plt.subplots(figsize=(12, 4))
 ax_c.set_xlim(0, 10); ax_c.set_ylim(0, 5); ax_c.axis('off')
 
-# Schematic Drawing
-ax_c.text(0.5, 2.5, "3Φ\nSource", bbox=dict(facecolor='none', shape='circle'))
-ax_c.arrow(1, 2.5, 1, 0.8, head_width=0.1)
-ax_c.arrow(1, 2.5, 1, -0.8, head_width=0.1)
-ax_c.add_patch(Rectangle((2.2, 2.8), 1.5, 1, color='blue', alpha=0.3))
-ax_c.text(2.95, 3.3, "Y-Y", ha='center')
-ax_c.add_patch(Rectangle((2.2, 1.2), 1.5, 1, color='green', alpha=0.3))
-ax_c.text(2.95, 1.7, "Y-Δ", ha='center')
-ax_c.add_patch(Rectangle((4.5, 2.8), 1.5, 1, fill=False, lw=2))
-ax_c.text(5.25, 3.3, "SCR 1", ha='center')
-ax_c.add_patch(Rectangle((4.5, 1.2), 1.5, 1, fill=False, lw=2))
-ax_c.text(5.25, 1.7, "SCR 2", ha='center')
-ax_c.plot([6, 7.5, 7.5, 8.5], [3.3, 3.3, 2.5, 2.5], 'r')
-ax_c.plot([6, 7.5, 7.5, 8.5], [1.7, 1.7, 2.5, 2.5], 'r')
-ax_c.add_patch(Rectangle((8.5, 2.1), 1, 0.8, color='grey'))
-ax_c.text(9, 2.5, "LOAD", ha='center', color='white')
+# Schematic Drawing - FIXED BBOX HERE
+ax_c.text(0.5, 2.5, "3Φ\nSource", ha='center', va='center', 
+          bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle,pad=0.5'))
+
+ax_c.annotate('', xy=(2.2, 3.3), xytext=(1.1, 2.7), arrowprops=dict(arrowstyle='->'))
+ax_c.annotate('', xy=(2.2, 1.7), xytext=(1.1, 2.3), arrowprops=dict(arrowstyle='->'))
+
+ax_c.add_patch(Rectangle((2.2, 2.8), 1.5, 1, color='blue', alpha=0.2))
+ax_c.text(2.95, 3.3, "Y-Y (0°)", ha='center')
+ax_c.add_patch(Rectangle((2.2, 1.2), 1.5, 1, color='green', alpha=0.2))
+ax_c.text(2.95, 1.7, "Y-Δ (30°)", ha='center')
+
+ax_c.add_patch(Rectangle((4.5, 2.8), 1.5, 1, fill=False, lw=1.5))
+ax_c.text(5.25, 3.3, "6-Pulse Bridge 1", ha='center', fontsize=9)
+ax_c.add_patch(Rectangle((4.5, 1.2), 1.5, 1, fill=False, lw=1.5))
+ax_c.text(5.25, 1.7, "6-Pulse Bridge 2", ha='center', fontsize=9)
+
+ax_c.plot([6, 7.5, 7.5, 8.5], [3.3, 3.3, 2.5, 2.5], 'r', lw=2)
+ax_c.plot([6, 7.5, 7.5, 8.5], [1.7, 1.7, 2.5, 2.5], 'r', lw=2)
+ax_c.add_patch(Rectangle((8.5, 2.0), 1.2, 1.0, color='#333333'))
+ax_c.text(9.1, 2.5, "LOAD", ha='center', va='center', color='white', fontweight='bold')
+
 st.pyplot(fig_ckt)
 
 # ------------------------------------------------------------
@@ -132,26 +122,26 @@ st.pyplot(fig_ckt)
 st.subheader("📈 Waveform Analysis")
 fig, axs = plt.subplots(3, 1, figsize=(12, 12), sharex=True)
 
-# Subplot 1: Bridge Comparisons
-axs[0].plot(t, Vdc1, 'b--', alpha=0.6, label="Bridge 1 (Y-Y)")
-axs[0].plot(t, Vdc2, 'g--', alpha=0.6, label="Bridge 2 (Y-Δ)")
-axs[0].set_title("Individual 6-Pulse Bridge Outputs")
+# Subplot 1: Bridges
+axs[0].plot(t, Vdc1, 'b--', alpha=0.5, label="Bridge 1 (0°)")
+axs[0].plot(t, Vdc2, 'g--', alpha=0.5, label="Bridge 2 (30°)")
+axs[0].set_title("Individual Bridge Voltages")
 axs[0].legend(loc='upper right')
 
-# Subplot 2: Combined Output
-axs[1].plot(t, Vdc_total, 'r', lw=2, label="12-Pulse Result")
-axs[1].axhline(v_avg, color='black', linestyle=':', label="DC Mean")
-axs[1].set_title("Final Rectified 12-Pulse Output")
+# Subplot 2: Total
+axs[1].plot(t, Vdc_total, 'r', lw=2, label="12-Pulse Output")
+axs[1].axhline(v_avg, color='black', linestyle=':', label="Average Vdc")
+axs[1].set_title("Combined DC Output Voltage")
 axs[1].legend(loc='upper right')
 
-# Subplot 3: Input Phases (Bridge 1)
-Va_plt = Vm_phase * np.sin(omega * t)
-Vb_plt = Vm_phase * np.sin(omega * t - 2*np.pi/3)
-Vc_plt = Vm_phase * np.sin(omega * t - 4*np.pi/3)
-axs[2].plot(t, Va_plt, label="Phase A")
-axs[2].plot(t, Vb_plt, label="Phase B")
-axs[2].plot(t, Vc_plt, label="Phase C")
-axs[2].set_title("Input AC Supply (Phase-Neutral)")
+# Subplot 3: AC Input
+Va_p = Vm_phase * np.sin(omega * t)
+Vb_p = Vm_phase * np.sin(omega * t - 2*np.pi/3)
+Vc_p = Vm_phase * np.sin(omega * t - 4*np.pi/3)
+axs[2].plot(t, Va_p, label="Phase A")
+axs[2].plot(t, Vb_p, label="Phase B")
+axs[2].plot(t, Vc_p, label="Phase C")
+axs[2].set_title("Input AC Supply (Phase-to-Neutral)")
 axs[2].legend(loc='upper right')
 
 for ax in axs:
@@ -165,21 +155,18 @@ st.pyplot(fig)
 # ------------------------------------------------------------
 # THEORY
 # ------------------------------------------------------------
-with st.expander("📘 Detailed Engineering Concepts"):
+with st.expander("📘 Engineering Theory"):
     st.markdown(r"""
-    ### 1. The 30° Phase Shift
-    In a 12-pulse system, the primary goal is harmonic cancellation. By using a **Wye-Delta (Y-Δ)** transformer for the second bridge, we introduce a $30^\circ$ electrical phase shift. 
-    
-    ### 2. Harmonic Cancellation
-    The Fourier series of a 6-pulse rectifier contains harmonics at $6n \pm 1$ (5th, 7th, 11th, 13th...). 
-    * The $30^\circ$ shift causes the 5th and 7th harmonics of the two bridges to be $180^\circ$ out of phase.
-    * When the outputs are combined, these harmonics **cancel out**.
-    * The first significant harmonics remaining are the 11th and 13th ($12n \pm 1$).
+    ### 1. Harmonic Cancellation
+    In a 12-pulse rectifier, the $30^\circ$ phase shift provided by the Delta-Wye transformer causes the 5th and 7th harmonics of the two bridges to be exactly $180^\circ$ out of phase. When summed, they cancel out, leaving the 11th and 13th as the primary harmonics.
 
-    ### 3. Firing Angle ($\alpha$) Control
-    The average DC output voltage is given by:
+    ### 2. Output Voltage Calculation
+    The average output voltage for a controlled 12-pulse rectifier is:
     $$V_{dc} = \frac{6V_{LL(peak)}}{\pi} \cos(\alpha)$$
-    As you increase $\alpha$, the mean voltage decreases. In this 12-pulse simulation, the two bridges are assumed to be connected in a way that their voltages are averaged (parallel configuration with inter-phase transformer logic).
+    Where $V_{LL(peak)} = V_{rms} \times \sqrt{2}$.
+
+    ### 3. Ripple Factor
+    The ripple factor for a 12-pulse rectifier is approximately **0.011 (1.1%)** at $\alpha=0$, compared to **0.042 (4.2%)** for a 6-pulse rectifier.
     """)
 
-st.info("💡 **Pro-tip:** Set the Firing Angle to 0° and observe how the 12-pulse output becomes nearly flat compared to a standard 6-pulse bridge.")
+st.info("⚙️ **Virtual Lab Note:** Adjust the Firing Angle $\alpha$ to see how the conduction sectors shift in the waveforms above.")
