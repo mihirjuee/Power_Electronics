@@ -76,17 +76,15 @@ with schemdraw.Drawing() as d:
 
     d.push()
     d += elm.Inductor().label('L')
-    d += elm.Line().right()
+    d += elm.Line().right(0.5)
     d += elm.Dot()
 
     d.push()
     d += elm.Capacitor().down().label('C')
-    d += elm.Ground()
     d.pop()
 
-    d += elm.Line().right()
+    d += elm.Line().right(0.5)
     d += elm.Resistor().down().label('R')
-    d += elm.Ground()
     d.pop()
 
     d += elm.Diode().down().label('D')
