@@ -83,7 +83,7 @@ with schemdraw.Drawing() as d:
     d += elm.Capacitor().down().label('C')
     d.pop()
 
-    d += elm.Line().right(0.5)
+    d += elm.Line().right(1)
     d += elm.Resistor().down().label('R')
     d.pop()
 
