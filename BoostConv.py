@@ -218,6 +218,79 @@ with st.expander("📘 Boost Converter Theory"):
     ### Ripple:
     Ripple % = (ΔVo / Vo_avg) × 100
     """)
+# ================= KEY FORMULAS SECTION =================
+# ADD THIS near the bottom of your Boost Converter app
+# (Place before st.info or footer)
 
+st.subheader("📐 Key Boost Converter Formulas")
+
+colf1, colf2 = st.columns(2)
+
+with colf1:
+    st.latex(r"V_o = \frac{V_{in}}{1-D}")
+    st.caption("Ideal Output Voltage")
+
+    st.latex(r"I_o = \frac{V_o}{R}")
+    st.caption("Load Current")
+
+    st.latex(r"I_{in} = \frac{I_o}{1-D}")
+    st.caption("Input / Inductor Average Current (Ideal)")
+
+    st.latex(r"T = \frac{1}{f_s}")
+    st.caption("Switching Time Period")
+
+with colf2:
+    st.latex(r"\Delta I_L = \frac{V_{in}D}{Lf_s}")
+    st.caption("Inductor Current Ripple")
+
+    st.latex(r"\Delta V_o = \frac{I_o D}{C f_s}")
+    st.caption("Output Voltage Ripple Approximation")
+
+    st.latex(r"\%Ripple = \frac{\Delta V_o}{V_o}\times100")
+    st.caption("Ripple Percentage")
+
+    st.latex(r"\eta = \frac{P_{out}}{P_{in}}\times100")
+    st.caption("Efficiency")
+
+# ================= CCM / DCM BOUNDARY =================
+st.subheader("⚙️ CCM / DCM Boundary")
+
+R_critical = (2 * L * fs) / ((1 - D) ** 2) if D < 1 else np.inf
+
+colm1, colm2, colm3 = st.columns(3)
+
+colm1.metric("Critical Resistance", f"{R_critical:.2f} Ω")
+colm2.metric("Current Mode", mode)
+colm3.metric(
+    "Condition",
+    "CCM" if R < R_critical else "DCM"
+)
+
+# ================= DESIGN INSIGHT =================
+with st.expander("🧠 Formula Insights"):
+    st.markdown("""
+    ### Important Design Relationships:
+
+    **Higher Duty Cycle (D ↑):**
+    - Output voltage increases sharply
+    - Inductor current stress increases
+    - Ripple may increase
+    - Practical losses rise
+
+    **Higher Inductance (L ↑):**
+    - Lower current ripple
+    - Better CCM stability
+    - Slower transient response
+
+    **Higher Capacitance (C ↑):**
+    - Lower output voltage ripple
+    - Better filtering
+    - Larger physical size
+
+    **Higher Switching Frequency (fs ↑):**
+    - Smaller L and C possible
+    - Lower ripple
+    - Higher switching losses in real systems
+    """)
 # ================= INFO =================
 st.info("Ideal boost model (no switching/conduction losses). Increase duty cycle carefully as D → 1 causes very high theoretical voltage.")
