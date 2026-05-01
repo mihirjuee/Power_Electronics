@@ -85,7 +85,7 @@ with schemdraw.Drawing() as d:
 
     d += elm.Line().right(2)
     d += elm.Resistor().down().label('R')
-    d += elm.Line().left(10)
+    d += elm.Line().left(9.5)
     d.pop()
 
     d += elm.Diode().down().label('D')
