@@ -5,7 +5,7 @@ import schemdraw
 import schemdraw.elements as elm
 
 # ================= PAGE =================
-st.set_page_config(page_title="Buck Converter Pro", layout="wide")
+st.set_page_config(page_title="Buck Converter Pro", page_icon="logo.png", layout="wide")
 st.title("⚡ Buck Converter Analysis Tool")
 
 # ================= SIDEBAR =================
@@ -85,7 +85,7 @@ with schemdraw.Drawing() as d:
 
     d += elm.Line().right(2)
     d += elm.Resistor().down().label('R')
-    d += elm.Line().left(8)
+    d += elm.Line().left(10)
     d.pop()
 
     d += elm.Diode().down().label('D')
