@@ -1,11 +1,9 @@
 # =========================================================
-# UPDATED BRIDGE RECTIFIER SIMULATOR
-# USING PREVIOUS CLEAN CIRCUIT DIAGRAM
-# + LIVE CONDUCTION VISUALIZATION
-# STREAMLIT APP
+# SINGLE PHASE BRIDGE RECTIFIER VISUALIZER
+# STREAMLIT + SCHEMDRAW
 # =========================================================
 
-# RUN:
+# RUN USING:
 # streamlit run app.py
 
 # =========================================================
@@ -46,25 +44,25 @@ st.markdown("""
 Interactive visualization of:
 - Full Wave Bridge Rectifier
 - Diode Conduction
-- Current Flow
+- AC to DC Conversion
 - Input & Output Waveforms
 """)
 
 # =========================================================
-# SIDEBAR
+# SIDEBAR CONTROLS
 # =========================================================
 
-st.sidebar.header("Controls")
+st.sidebar.header("Simulation Controls")
 
 Vm = st.sidebar.slider(
-    "Peak Voltage",
+    "Peak Voltage (Vm)",
     50,
     400,
     230
 )
 
 freq = st.sidebar.slider(
-    "Frequency",
+    "Frequency (Hz)",
     1,
     100,
     50
@@ -78,10 +76,14 @@ time_index = st.sidebar.slider(
 )
 
 # =========================================================
-# SIGNALS
+# TIME AXIS
 # =========================================================
 
 t = np.linspace(0, 0.04, 1000)
+
+# =========================================================
+# INPUT & OUTPUT VOLTAGES
+# =========================================================
 
 vin = Vm * np.sin(2*np.pi*freq*t)
 
@@ -90,7 +92,7 @@ vout = np.abs(vin)
 instant_v = vin[time_index]
 
 # =========================================================
-# DIODE CONDUCTION
+# DIODE CONDUCTION LOGIC
 # =========================================================
 
 if instant_v >= 0:
@@ -134,60 +136,62 @@ with schemdraw.Drawing(show=False) as d:
     d += elm.Line().right()
 
     # -----------------------------------------------------
-    # TOP LEFT DIODE D1
+    # SAVE STARTING POINT
     # -----------------------------------------------------
+
+    start = d.here
+
+    # =====================================================
+    # TOP BRANCH
+    # =====================================================
 
     d.push()
 
-    d1 = d += elm.Diode().up().color(D1_color).label('D1')
+    # D1
+    d1 = elm.Diode().up().color(D1_color).label('D1')
+    d += d1
 
     d += elm.Line().right(2)
 
-    # -----------------------------------------------------
-    # LOAD RESISTOR
-    # -----------------------------------------------------
-
+    # LOAD
     d += elm.Resistor().down().label('RL')
 
-    # -----------------------------------------------------
-    # BOTTOM RIGHT DIODE D3
-    # -----------------------------------------------------
-
-    d += elm.Diode().down().color(D3_color).label('D3')
+    # D3
+    d3 = elm.Diode().down().color(D3_color).label('D3')
+    d += d3
 
     d += elm.Line().left(2)
 
     d.pop()
 
-    # -----------------------------------------------------
+    # =====================================================
     # LOWER BRANCH
-    # -----------------------------------------------------
+    # =====================================================
 
     d += elm.Line().down(4)
 
     d.push()
 
-    # -----------------------------------------------------
     # D4
-    # -----------------------------------------------------
-
-    d += elm.Diode().right().color(D4_color).label('D4')
+    d4 = elm.Diode().right().color(D4_color).label('D4')
+    d += d4
 
     d += elm.Line().up(4)
 
     d.pop()
 
-    # -----------------------------------------------------
+    # =====================================================
     # D2
-    # -----------------------------------------------------
+    # =====================================================
 
     d.move(dx=0, dy=4)
 
-    d += elm.Diode().right().color(D2_color).label('D2')
+    d2 = elm.Diode().right().color(D2_color).label('D2')
+    d += d2
 
-    # -----------------------------------------------------
+    # =====================================================
     # OUTPUT TERMINALS
-    # -----------------------------------------------------
+    # =====================================================
 
     d += elm.Dot().label('+Vo')
 
@@ -195,9 +199,9 @@ with schemdraw.Drawing(show=False) as d:
 
     d += elm.Dot().label('-Vo')
 
-    # -----------------------------------------------------
-    # DISPLAY
-    # -----------------------------------------------------
+    # =====================================================
+    # DISPLAY CIRCUIT
+    # =====================================================
 
     st.pyplot(d.fig)
 
@@ -205,7 +209,7 @@ with schemdraw.Drawing(show=False) as d:
 # CONDUCTION STATUS
 # =========================================================
 
-st.subheader("Live Conduction Status")
+st.subheader("Conduction Status")
 
 st.markdown(
     f"""
@@ -217,7 +221,7 @@ st.markdown(
 )
 
 # =========================================================
-# CURRENT PATH EXPLANATION
+# CURRENT PATH
 # =========================================================
 
 if instant_v >= 0:
@@ -235,49 +239,61 @@ else:
     """)
 
 # =========================================================
-# WAVEFORMS
+# WAVEFORM PLOT
 # =========================================================
 
-st.subheader("Waveforms")
+st.subheader("Input & Output Waveforms")
 
 fig, ax = plt.subplots(figsize=(12,5))
 
-# Input waveform
+# ---------------------------------------------------------
+# INPUT WAVEFORM
+# ---------------------------------------------------------
+
 ax.plot(
     t,
     vin,
-    color='red',
     linewidth=3,
+    color='red',
     label='Input AC Voltage'
 )
 
-# Output waveform
+# ---------------------------------------------------------
+# OUTPUT WAVEFORM
+# ---------------------------------------------------------
+
 ax.plot(
     t,
     vout,
-    color='lime',
     linewidth=3,
+    color='lime',
     label='Rectified Output'
 )
 
-# Current time markers
+# ---------------------------------------------------------
+# MOVING MARKERS
+# ---------------------------------------------------------
+
 ax.plot(
     t[time_index],
     vin[time_index],
     'o',
-    color='red',
-    markersize=10
+    markersize=10,
+    color='red'
 )
 
 ax.plot(
     t[time_index],
     vout[time_index],
     'o',
-    color='lime',
-    markersize=10
+    markersize=10,
+    color='lime'
 )
 
-# Cursor line
+# ---------------------------------------------------------
+# CURSOR LINE
+# ---------------------------------------------------------
+
 ax.axvline(
     t[time_index],
     linestyle='--',
@@ -285,46 +301,54 @@ ax.axvline(
     color='blue'
 )
 
-# Grid
+# ---------------------------------------------------------
+# AXIS SETTINGS
+# ---------------------------------------------------------
+
 ax.grid(True)
 
 ax.set_xlabel("Time (s)")
 ax.set_ylabel("Voltage")
 
-ax.set_title("AC Input & Rectified Output")
+ax.set_title("AC Input & Full Wave Rectified Output")
 
 ax.legend()
+
+# ---------------------------------------------------------
+# DISPLAY PLOT
+# ---------------------------------------------------------
 
 st.pyplot(fig)
 
 # =========================================================
-# METRICS
+# OUTPUT PARAMETERS
 # =========================================================
 
 st.subheader("Output Parameters")
 
-Vdc = 2*Vm/np.pi
-Vrms = Vm/np.sqrt(2)
+Vdc = 2 * Vm / np.pi
 
-c1, c2, c3 = st.columns(3)
+Vrms = Vm / np.sqrt(2)
 
-c1.metric(
+col1, col2, col3 = st.columns(3)
+
+col1.metric(
     "Average DC Voltage",
     f"{Vdc:.2f} V"
 )
 
-c2.metric(
+col2.metric(
     "RMS Input Voltage",
     f"{Vrms:.2f} V"
 )
 
-c3.metric(
-    "Instantaneous Input",
+col3.metric(
+    "Instantaneous Voltage",
     f"{instant_v:.2f} V"
 )
 
 # =========================================================
-# THEORY
+# THEORY SECTION
 # =========================================================
 
 st.subheader("Theory")
@@ -338,7 +362,7 @@ st.latex(
 )
 
 st.markdown("""
-### Bridge Rectifier Working
+### Working Principle
 
 #### Positive Half Cycle
 - D1 and D3 conduct
@@ -349,7 +373,7 @@ st.markdown("""
 - D1 and D3 remain OFF
 
 The load current always flows in the same direction,
-thus producing pulsating DC output.
+therefore pulsating DC is obtained.
 """)
 
 # =========================================================
@@ -358,6 +382,4 @@ thus producing pulsating DC output.
 
 st.markdown("---")
 
-st.markdown(
-    "⚡ Educational Power Electronics Simulator"
-)
+st.markdown("⚡ Educational Power Electronics Simulator")
