@@ -1,10 +1,19 @@
 # =========================================================
-# STREAMLIT APP
+# STREAMLIT + SCHEMDRAW
 # SINGLE PHASE BRIDGE RECTIFIER SIMULATOR
 # =========================================================
 
-# Run using:
+# RUN USING:
 # streamlit run app.py
+
+# =========================================================
+# INSTALL REQUIRED LIBRARIES
+# =========================================================
+
+# pip install streamlit
+# pip install matplotlib
+# pip install numpy
+# pip install schemdraw
 
 # =========================================================
 # IMPORTS
@@ -13,7 +22,9 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
+from matplotlib.animation import FuncAnimation
+import schemdraw
+import schemdraw.elements as elm
 
 # =========================================================
 # PAGE CONFIG
@@ -32,10 +43,10 @@ st.title("⚡ Single Phase Bridge Rectifier Simulator")
 
 st.markdown("""
 Interactive visualization of:
-- Full wave bridge rectifier
-- Diode conduction
-- Input AC waveform
-- Rectified DC waveform
+- Bridge Rectifier Circuit
+- Diode Conduction
+- AC to DC Conversion
+- Full Wave Rectification
 """)
 
 # =========================================================
@@ -72,325 +83,208 @@ time_index = st.sidebar.slider(
 t = np.linspace(0, 0.04, 1000)
 
 # =========================================================
-# WAVEFORMS
+# INPUT & OUTPUT VOLTAGES
 # =========================================================
 
 vin = Vm * np.sin(2*np.pi*freq*t)
 
 vout = np.abs(vin)
 
-# Current value
 current_v = vin[time_index]
 
 # =========================================================
-# DETERMINE CONDUCTING DIODES
-# =========================================================
-
-OFF = 'gray'
-ON = 'lime'
-
-D1 = OFF
-D2 = OFF
-D3 = OFF
-D4 = OFF
-
-if current_v >= 0:
-
-    D1 = ON
-    D3 = ON
-
-    conduction_text = "D1 & D3 Conducting"
-
-    flow_color = 'lime'
-
-else:
-
-    D2 = ON
-    D4 = ON
-
-    conduction_text = "D2 & D4 Conducting"
-
-    flow_color = 'orange'
-
-# =========================================================
-# CREATE FIGURE
-# =========================================================
-
-fig = plt.figure(figsize=(14,8))
-
-# =========================================================
-# CIRCUIT AXIS
-# =========================================================
-
-ax1 = plt.subplot(1,2,1)
-
-ax1.set_xlim(-6,6)
-ax1.set_ylim(-6,6)
-
-ax1.set_aspect('equal')
-
-ax1.axis('off')
-
-ax1.set_title("Bridge Rectifier Circuit")
-
-# =========================================================
-# AC SOURCE
-# =========================================================
-
-source = Circle(
-    (-4,0),
-    0.7,
-    edgecolor='black',
-    facecolor='none',
-    linewidth=3
-)
-
-ax1.add_patch(source)
-
-ax1.text(
-    -4,
-    0,
-    "~",
-    fontsize=28,
-    ha='center',
-    va='center'
-)
-
-# =========================================================
-# CIRCUIT WIRING
-# =========================================================
-
-ax1.plot([-3.3,-1],[0,3],
-         color='black',
-         linewidth=3)
-
-ax1.plot([-3.3,-1],[0,-3],
-         color='black',
-         linewidth=3)
-
-ax1.plot([1,4],[3,3],
-         color='black',
-         linewidth=3)
-
-ax1.plot([1,-1],[-3,-3],
-         color='black',
-         linewidth=3)
-
-ax1.plot([4,4],[3,-3],
-         color='black',
-         linewidth=3)
-
-# =========================================================
-# LOAD RESISTOR
-# =========================================================
-
-ax1.plot([4.2,4.2],
-         [2,-2],
-         color='brown',
-         linewidth=6)
-
-ax1.text(
-    4.6,
-    0,
-    "RL",
-    fontsize=18,
-    fontweight='bold'
-)
-
-# =========================================================
-# DIODE POSITIONS
-# =========================================================
-
-diodes = [
-    (-1,3,'D1',D1),
-    (1,3,'D2',D2),
-    (-1,-3,'D3',D3),
-    (1,-3,'D4',D4)
-]
-
-# =========================================================
-# DRAW DIODES
-# =========================================================
-
-for x,y,label,color in diodes:
-
-    diode = Circle(
-        (x,y),
-        0.4,
-        edgecolor=color,
-        facecolor='none',
-        linewidth=4
-    )
-
-    ax1.add_patch(diode)
-
-    ax1.text(
-        x,
-        y,
-        label,
-        fontsize=12,
-        color=color,
-        ha='center',
-        va='center',
-        fontweight='bold'
-    )
-
-# =========================================================
-# CURRENT FLOW
+# DIODE CONDUCTION LOGIC
 # =========================================================
 
 if current_v >= 0:
 
-    ax1.arrow(
-        -2.5,1,
-        1,1.5,
-        color='green',
-        linewidth=3,
-        width=0.03,
-        head_width=0.2,
-        length_includes_head=True
-    )
+    conducting = "D1 & D3 Conducting"
 
-    ax1.arrow(
-        2.5,3,
-        1.2,-1.5,
-        color='green',
-        linewidth=3,
-        width=0.03,
-        head_width=0.2,
-        length_includes_head=True
-    )
+    D1_color = 'lime'
+    D2_color = 'gray'
+    D3_color = 'lime'
+    D4_color = 'gray'
 
 else:
 
-    ax1.arrow(
-        -2.5,-1,
-        1,-1.5,
-        color='orange',
-        linewidth=3,
-        width=0.03,
-        head_width=0.2,
-        length_includes_head=True
+    conducting = "D2 & D4 Conducting"
+
+    D1_color = 'gray'
+    D2_color = 'lime'
+    D3_color = 'gray'
+    D4_color = 'lime'
+
+# =========================================================
+# SCHEMDRAW CIRCUIT
+# =========================================================
+
+st.subheader("Bridge Rectifier Circuit Diagram")
+
+with schemdraw.Drawing(show=False) as d:
+
+    d.config(unit=2.5)
+
+    # -----------------------------------------------------
+    # AC SOURCE
+    # -----------------------------------------------------
+
+    source = d.add(
+        elm.SourceSin().label('AC Input')
     )
 
-    ax1.arrow(
-        2.5,-3,
-        1.2,1.5,
-        color='orange',
-        linewidth=3,
-        width=0.03,
-        head_width=0.2,
-        length_includes_head=True
+    d.add(elm.Line().right())
+
+    # -----------------------------------------------------
+    # TOP LEFT NODE
+    # -----------------------------------------------------
+
+    d.push()
+
+    # D1
+    d1 = d.add(
+        elm.Diode().up().color(D1_color).label('D1')
     )
 
+    d.add(elm.Line().right(2))
+
+    # LOAD
+    d.add(
+        elm.Resistor().down().label('RL')
+    )
+
+    # D3
+    d.add(
+        elm.Diode().down().color(D3_color).label('D3')
+    )
+
+    d.add(elm.Line().left(2))
+
+    d.pop()
+
+    # -----------------------------------------------------
+    # LOWER BRANCH
+    # -----------------------------------------------------
+
+    d.add(elm.Line().down(4))
+
+    d.push()
+
+    # D4
+    d.add(
+        elm.Diode().right().color(D4_color).label('D4')
+    )
+
+    d.add(elm.Line().up(4))
+
+    d.pop()
+
+    # D2
+    d.move(dx=0, dy=4)
+
+    d.add(
+        elm.Diode().right().color(D2_color).label('D2')
+    )
+
+    # -----------------------------------------------------
+    # OUTPUT LABELS
+    # -----------------------------------------------------
+
+    d.add(elm.Dot().label('+Vo'))
+
+    d.move(dx=0, dy=-4)
+
+    d.add(elm.Dot().label('-Vo'))
+
+    # -----------------------------------------------------
+    # DISPLAY CIRCUIT
+    # -----------------------------------------------------
+
+    st.pyplot(d.fig)
+
 # =========================================================
-# STATUS TEXT
+# WAVEFORM PLOT
 # =========================================================
 
-ax1.text(
-    -5,
-    5,
-    "AC INPUT",
-    fontsize=16,
-    fontweight='bold'
-)
+st.subheader("Waveforms")
 
-ax1.text(
-    2.5,
-    5,
-    "DC OUTPUT",
-    fontsize=16,
-    color='green',
-    fontweight='bold'
-)
+fig, ax = plt.subplots(figsize=(12,5))
 
-ax1.text(
-    -5,
-    -5,
-    conduction_text,
-    fontsize=15,
-    color=flow_color,
-    fontweight='bold'
-)
-
-# =========================================================
-# WAVEFORM AXIS
-# =========================================================
-
-ax2 = plt.subplot(1,2,2)
-
-ax2.set_title("Input & Output Waveforms")
-
-ax2.plot(
+# Input waveform
+ax.plot(
     t,
     vin,
     linewidth=3,
-    label='Input AC'
+    color='red',
+    label='Input AC Voltage'
 )
 
-ax2.plot(
+# Output waveform
+ax.plot(
     t,
     vout,
     linewidth=3,
+    color='lime',
     label='Rectified Output'
 )
 
-# =========================================================
-# MOVING MARKERS
-# =========================================================
-
-ax2.plot(
+# Current time marker
+ax.plot(
     t[time_index],
     vin[time_index],
     'o',
-    markersize=10
+    markersize=10,
+    color='red'
 )
 
-ax2.plot(
+ax.plot(
     t[time_index],
     vout[time_index],
     'o',
-    markersize=10
+    markersize=10,
+    color='lime'
 )
 
-# =========================================================
-# TIME CURSOR
-# =========================================================
-
-ax2.axvline(
+# Cursor line
+ax.axvline(
     t[time_index],
     linestyle='--',
-    linewidth=2
+    linewidth=2,
+    color='blue'
 )
 
-# =========================================================
-# AXIS SETTINGS
-# =========================================================
+# Axis settings
+ax.grid(True)
 
-ax2.grid(True)
+ax.set_xlabel("Time (s)")
+ax.set_ylabel("Voltage")
 
-ax2.set_xlabel("Time (s)")
-ax2.set_ylabel("Voltage")
+ax.set_title("Input AC & Rectified Output")
 
-ax2.legend()
-
-# =========================================================
-# DISPLAY FIGURE
-# =========================================================
+ax.legend()
 
 st.pyplot(fig)
 
 # =========================================================
-# OUTPUT VALUES
+# CONDUCTION STATUS
+# =========================================================
+
+st.subheader("Conduction Status")
+
+if current_v >= 0:
+
+    st.success(conducting)
+
+else:
+
+    st.warning(conducting)
+
+# =========================================================
+# METRICS
 # =========================================================
 
 Vdc = 2*Vm/np.pi
 
 Vrms = Vm/np.sqrt(2)
-
-# =========================================================
-# METRICS
-# =========================================================
 
 col1, col2, col3 = st.columns(3)
 
@@ -405,25 +299,45 @@ col2.metric(
 )
 
 col3.metric(
-    "Instantaneous Voltage",
+    "Instantaneous Input",
     f"{current_v:.2f} V"
 )
 
 # =========================================================
-# THEORY SECTION
+# THEORY
 # =========================================================
 
 st.subheader("Theory")
 
-st.latex(r"V_{DC} = \\frac{2V_m}{\\pi}")
+st.latex(
+    r"V_{DC} = \\frac{2V_m}{\\pi}"
+)
 
-st.latex(r"V_o = |V_m \\sin(\\omega t)|")
+st.latex(
+    r"V_o = |V_m \\sin(\\omega t)|"
+)
 
-st.write("""
-During:
-- Positive half cycle → D1 and D3 conduct
-- Negative half cycle → D2 and D4 conduct
+st.markdown("""
+### Working Principle
+
+#### Positive Half Cycle
+- D1 and D3 conduct
+- D2 and D4 remain OFF
+
+#### Negative Half Cycle
+- D2 and D4 conduct
+- D1 and D3 remain OFF
 
 The load current always flows in the same direction,
-producing pulsating DC output.
+thus producing pulsating DC output.
 """)
+
+# =========================================================
+# FOOTER
+# =========================================================
+
+st.markdown("---")
+
+st.markdown(
+    "⚡ Educational Simulator for Power Electronics"
+)
