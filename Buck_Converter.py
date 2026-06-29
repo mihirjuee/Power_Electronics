@@ -88,7 +88,7 @@ with schemdraw.Drawing() as d:
     d += elm.Line().left(9.5)
     d.pop()
 
-    d += elm.Diode().down().label('D')
+    d += elm.Diode().down().reverse().label('D')
     
 
     fig_circuit = d.draw().fig
